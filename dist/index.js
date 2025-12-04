@@ -1,4 +1,5 @@
 import _ from "lodash";
+import JSON5 from "json5";
 const isValidStr = (str) => {
     if (_.isNil(str)) {
         return false;
@@ -116,6 +117,82 @@ const waited = (func, frameCount = 0) => {
         func();
     });
 };
+const equalsOr = (...args) => {
+    if (args.length === 2) {
+        return valueOr(args[0], args[1]);
+    }
+    const [param1, param2, els] = args;
+    if (!_.isNil(param1) && typeof param1 === "function") {
+        return equalsOr(param1(), param2, els);
+    }
+    if (!_.isNil(param1) && (param1 instanceof Promise)) {
+        return param1.then(v => equalsOr(v, param2, els));
+    }
+    if (!_.isNil(param2) && typeof param2 === "function") {
+        return equalsOr(param1, param2(), els);
+    }
+    if (!_.isNil(param2) && param2 instanceof Promise) {
+        return param2.then(v => equalsOr(param1, v, els));
+    }
+    if (_.isNil(param1) && _.isNil(param2)) {
+        return null;
+    }
+    // 比較
+    if (_.isEqual(param1, param2)) {
+        return param1;
+    }
+    // elsの解決
+    if (typeof els === "function") {
+        return els();
+    }
+    return els;
+};
+const parseJSON = (str) => {
+    if (_.isNil(str)) {
+        return null;
+    }
+    if (typeof str === "object") {
+        return str;
+    }
+    try {
+        return JSON5.parse(str);
+    }
+    catch {
+        return null;
+    }
+};
+const jsonStringify = (obj) => {
+    if (_.isNil(obj)) {
+        return null;
+    }
+    if (typeof obj === "string") {
+        try {
+            const j = JSON5.parse(obj);
+            return JSON.stringify(j);
+        }
+        catch {
+            return null;
+        }
+    }
+    if (typeof obj === "object") {
+        try {
+            return JSON.stringify(obj);
+        }
+        catch {
+            return null;
+        }
+    }
+    return null;
+};
+const castArray = (value) => {
+    if (_.isNil(value)) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value;
+    }
+    return [value];
+};
 export default Object.assign({}, _, {
     isEmpty,
     toNumber,
@@ -125,7 +202,11 @@ export default Object.assign({}, _, {
     hiraToKana,
     isValidStr,
     valueOr,
+    equalsOr,
     waited,
+    parseJSON,
+    jsonStringify,
+    castArray,
 });
 // 個別エクスポートも提供
-export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, waited, };
+export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, };

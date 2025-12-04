@@ -1,0 +1,26 @@
+{
+  "name": "@sera/ansuko",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "index.ts"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "json5": "^2.2.3",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "typescript": "^5.3.3"
+  },
+  "description": "Custom utility library extending lodash with practical functions",
+  "author": "sera@4am",
+  "license": "MIT"
+}

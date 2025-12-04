@@ -195,7 +195,8 @@ interface Ansuko extends LoDashStatic {
     castArray: typeof castArray
 }
 
-export default Object.assign({}, _, {
+export default {
+    ...(_ as LoDashStatic),
     isEmpty,
     toNumber,
     boolIf,
@@ -209,7 +210,7 @@ export default Object.assign({}, _, {
     parseJSON,
     jsonStringify,
     castArray,
-}) as Ansuko
+} as Ansuko
 
 // 個別エクスポートも提供
 export {

@@ -193,7 +193,8 @@ const castArray = (value) => {
     }
     return [value];
 };
-export default Object.assign({}, _, {
+export default {
+    ..._,
     isEmpty,
     toNumber,
     boolIf,
@@ -207,6 +208,6 @@ export default Object.assign({}, _, {
     parseJSON,
     jsonStringify,
     castArray,
-});
+};
 // 個別エクスポートも提供
 export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, };

@@ -1,5 +1,11 @@
-import type { Ansuko } from "./index.d";
+import { LoDashStatic } from "lodash";
 declare const isValidStr: (str: unknown) => str is string;
+declare global {
+    interface Array<T> {
+        notMap(predicate: (item: T) => boolean): boolean[];
+        notFilter(predicate: (item: T) => boolean): T[];
+    }
+}
 type MaybePromise<T> = T | Promise<T>;
 type MaybeFunction<T> = T | (() => MaybePromise<T>);
 declare const valueOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els: E | (() => E)) => MaybePromise<T | E>;
@@ -18,7 +24,7 @@ export type ChangesOptions = {
     keyExcludes?: boolean;
 };
 declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions) => Record<string, any>;
-declare const _default: Ansuko;
+declare const _default: LoDashStatic;
 export default _default;
 export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };
 //# sourceMappingURL=index.d.ts.map

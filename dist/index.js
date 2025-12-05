@@ -220,7 +220,7 @@ Array.prototype.notMap = function (predicate) {
 Array.prototype.notFilter = function (predicate) {
     return this.filter(_.negate(predicate));
 };
-// @ts-ignore-next-line
+// Ansuko型へのキャストを外し、より安全な unknown as LoDashStatic に変更
 export default {
     ..._,
     isEmpty,
@@ -238,5 +238,5 @@ export default {
     castArray,
     changes,
 };
-// 個別エクスポートも提供
+// 個別エクスポートはそのまま
 export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };

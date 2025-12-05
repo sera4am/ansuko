@@ -1,11 +1,17 @@
 import _, {LoDashStatic} from "lodash"
 import JSON5 from "json5"
-import type {Ansuko} from "./index.d"
 
 const isValidStr = (str: unknown): str is string => {
     if (_.isNil(str)) { return false }
     if (_.isEmpty(str)) { return false }
     return typeof str === "string"
+}
+
+declare global {
+    interface Array<T> {
+        notMap(predicate: (item: T) => boolean): boolean[]
+        notFilter(predicate: (item: T) => boolean): T[]
+    }
 }
 
 type MaybePromise<T> = T | Promise<T>
@@ -219,8 +225,7 @@ Array.prototype.notFilter = function<T>(this: T[], predicate: (item: T) => boole
     return this.filter(_.negate(predicate))
 }
 
-// @ts-ignore-next-line
-
+// Ansuko型へのキャストを外し、より安全な unknown as LoDashStatic に変更
 export default {
     ...(_ as LoDashStatic),
     isEmpty,
@@ -237,9 +242,9 @@ export default {
     jsonStringify,
     castArray,
     changes,
-} as Ansuko
+} as unknown as LoDashStatic
 
-// 個別エクスポートも提供
+// 個別エクスポートはそのまま
 export {
     isEmpty,
     toNumber,

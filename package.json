@@ -2,7 +2,7 @@
   "name": "@sera/ansuko",
   "version": "1.0.7",
   "main": "./dist/index.js",
-  "types": "./index.d.ts",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
     "dist",

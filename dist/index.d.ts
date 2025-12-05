@@ -1,4 +1,4 @@
-import Ansuko from "./index.d";
+import type { Ansuko } from "./index.d";
 declare const isValidStr: (str: unknown) => str is string;
 declare global {
     interface Array<T> {

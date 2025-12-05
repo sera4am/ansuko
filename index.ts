@@ -1,5 +1,6 @@
 import _, {LoDashStatic} from "lodash"
 import JSON5 from "json5"
+import Ansuko from "./index.d"
 
 const isValidStr = (str: unknown): str is string => {
     if (_.isNil(str)) { return false }
@@ -242,7 +243,7 @@ export default {
     jsonStringify,
     castArray,
     changes,
-} as unknown as LoDashStatic
+} as Ansuko
 
 // 個別エクスポートはそのまま
 export {

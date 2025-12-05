@@ -8,7 +8,7 @@ export type ChangesOptions = {
 }
 
 // Ansukoインターフェースの定義 (カスタム関数のみ)
-interface Ansuko extends LoDashStatic {
+export default interface Ansuko extends LodashStatic {
     isEmpty: (value: unknown) => boolean
     toNumber: (value: unknown) => number|null
     boolIf: (value: unknown, defaultValue?: boolean) => boolean
@@ -44,8 +44,7 @@ declare global {
 }
 
 // 最終的なモジュールエクスポートの型宣言
-declare const ansuko: Ansuko;
-export default ansuko;
+//declare const ansuko: Ansuko;
 
 // 個別エクスポートの型宣言も提供
 export declare function isEmpty(value: unknown): boolean;

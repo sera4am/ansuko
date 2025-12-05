@@ -1,4 +1,4 @@
-import { LoDashStatic } from "lodash";
+import Ansuko from "./index.d";
 declare const isValidStr: (str: unknown) => str is string;
 declare global {
     interface Array<T> {
@@ -24,7 +24,7 @@ export type ChangesOptions = {
     keyExcludes?: boolean;
 };
 declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions) => Record<string, any>;
-declare const _default: LoDashStatic;
+declare const _default: Ansuko;
 export default _default;
 export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };
 //# sourceMappingURL=index.d.ts.map

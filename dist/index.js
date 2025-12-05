@@ -193,9 +193,13 @@ const castArray = (value) => {
     }
     return [value];
 };
-const changes = (sourceValue, currentValue, keys) => {
+const changes = (sourceValue, currentValue, keys, options) => {
     const diff = {};
-    for (const key of keys) {
+    const targetKeys = options?.keyExcludes === true ?
+        _.uniq([...Object.keys(sourceValue), ...Object.keys(currentValue)])
+            .filter(k => !keys.includes(k))
+        : keys;
+    for (const key of targetKeys) {
         const v1 = _.get(sourceValue, key);
         const v2 = _.get(currentValue, key);
         if (_.isNil(v1) && _.isNil(v2))
@@ -210,6 +214,13 @@ const changes = (sourceValue, currentValue, keys) => {
     }
     return diff;
 };
+Array.prototype.notMap = function (predicate) {
+    return this.map(_.negate(predicate));
+};
+Array.prototype.notFilter = function (predicate) {
+    return this.filter(_.negate(predicate));
+};
+// @ts-ignore-next-line
 export default {
     ..._,
     isEmpty,

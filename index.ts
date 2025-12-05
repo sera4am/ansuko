@@ -26,8 +26,8 @@ type MaybeFunction<T> = T | (() => MaybePromise<T>)
 
 const valueOr = <T, E>(
     value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els: E | (() => E)
-): MaybePromise<T | E> => {
+    els?: E | (() => E)
+): MaybePromise<T | E | undefined> => {
     if (_.isNil(value)) {
         if (typeof els === "function") { return (els as () => E)() }
         return els

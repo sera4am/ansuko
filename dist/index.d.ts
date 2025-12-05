@@ -14,8 +14,8 @@ export declare const isValidStr: (str: unknown) => str is string
 
 export declare const valueOr: <T, E>(
     value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els: E | (() => E)
-) => MaybePromise<T | E>
+    els?: E | (() => E)
+) => MaybePromise<T | E | undefined>
 
 export declare const kanaToFull: (str: string) => string
 export declare const kanaToHira: (str: unknown) => string | null

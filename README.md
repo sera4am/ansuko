@@ -33,10 +33,12 @@ Or add to your `package.json`:
 ansuko eliminates common JavaScript frustrations:
 
 - No more `isEmpty(0)` returning `true`
-- No more `JSON.stringify("string")` returning `"\"string\""`
+- No more `toNumber(null)` returing `0`
 - No more `castArray(null)` returning `[null]`
+- No more `JSON.stringify("string")` returning `"\"string\""`
 - No more unsafe `JSON.parse()` without try-catch
 - No more verbose `a == b ? a : defaultValue` patterns
+- No more `delete obj.<wasteKey>` after deep-merged updates — _.changes extracts only changed fields
 
 ## Key Features
 
@@ -155,6 +157,34 @@ _.castArray(1)         // => [1]
 _.castArray(maybeNull).map(process)  // Just works!
 ```
 
+### `changes` - Track object differences
+
+Get only the values that have changed between two objects at specified keys. Perfect for database updates:
+
+```javascript
+// Basic usage - compare at specific keys
+const original = { name: 'John', age: 30, email: 'john@example.com' }
+const updated = { name: 'John', age: 31, email: 'john@example.com' }
+
+_.changes(original, updated, ['name', 'age', 'email'])
+// => { age: 31 }  (only changed values)
+
+// Handles null/undefined differences
+const before = { status: 'active', notes: null }
+const after = { status: 'active', notes: undefined }
+
+_.changes(before, after, ['status', 'notes'])
+// => { notes: null }  (undefined normalized to null for DB storage)
+
+// Supports deep paths with lodash get syntax
+_.changes(userA, userB, ['profile.bio', 'settings.theme', 'metadata.tags[0]'])
+// => { 'profile.bio': 'new bio', 'settings.theme': 'dark' }
+
+// Perfect for UPDATE queries
+const userChanges = _.changes(fetchedUser, editedUser, Object.keys(schema))
+db.update('users', userId, userChanges)  // Only update changed fields
+```
+
 ### Japanese Text Processing
 
 Comprehensive utilities for handling Japanese text:
@@ -225,6 +255,7 @@ const user = _.parseJSON<User>(jsonString)  // User | null
 
 - `valueOr(value, defaultValue)` - Get value or default with Promise/function support
 - `equalsOr(value1, value2, defaultValue)` - Compare and fallback (or use as valueOr with 2 args)
+- `changes(sourceObj, currentObj, keys)` - Get changed values at specified keys, perfect for DB updates
 
 ### JSON Utilities
 
@@ -255,11 +286,11 @@ All original lodash functions are available as well.
 // Before
 let status
 try {
-  const response = await fetch('/api/status')
-  const data = await response.json()
-  status = data && data.status ? data.status : 'unknown'
+    const response = await fetch('/api/status')
+    const data = await response.json()
+    status = data && data.status ? data.status : 'unknown'
 } catch (e) {
-  status = 'error'
+    status = 'error'
 }
 
 // After
@@ -271,10 +302,10 @@ const status = _.equalsOr(data.status, 'success', 'unknown')
 
 ```javascript
 // Before
-const timeout = config.timeout !== null && 
-                config.timeout !== undefined && 
-                config.timeout !== '' ? 
-                config.timeout : 5000
+const timeout = config.timeout !== null &&
+config.timeout !== undefined &&
+config.timeout !== '' ?
+    config.timeout : 5000
 
 // After
 const timeout = _.valueOr(config.timeout, 5000)
@@ -286,8 +317,8 @@ const timeout = _.valueOr(config.timeout, 5000)
 // Before
 const items = data.items
 const processed = (items ? (Array.isArray(items) ? items : [items]) : [])
-  .filter(Boolean)
-  .map(process)
+    .filter(Boolean)
+    .map(process)
 
 // After
 const processed = _.castArray(data.items).map(process)

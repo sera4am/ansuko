@@ -14,6 +14,7 @@ declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
 declare const parseJSON: <T = any>(str: string | object) => T | null;
 declare const jsonStringify: <T = any>(obj: T) => string | null;
 declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
+declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[]) => Record<string, any>;
 interface Ansuko extends LoDashStatic {
     isEmpty: typeof isEmpty;
     toNumber: typeof toNumber;
@@ -28,6 +29,7 @@ interface Ansuko extends LoDashStatic {
     parseJSON: typeof parseJSON;
     jsonStringify: typeof jsonStringify;
     castArray: typeof castArray;
+    changes: typeof changes;
     isNil: typeof isNil;
     compact: typeof compact;
     concat: typeof concat;
@@ -311,5 +313,5 @@ interface Ansuko extends LoDashStatic {
 }
 declare const _default: Ansuko;
 export default _default;
-export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, };
+export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };
 //# sourceMappingURL=index.d.ts.map

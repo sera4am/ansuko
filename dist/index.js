@@ -193,6 +193,23 @@ const castArray = (value) => {
     }
     return [value];
 };
+const changes = (sourceValue, currentValue, keys) => {
+    const diff = {};
+    for (const key of keys) {
+        const v1 = _.get(sourceValue, key);
+        const v2 = _.get(currentValue, key);
+        if (_.isNil(v1) && _.isNil(v2))
+            continue;
+        if (_.isNil(v1) || _.isNil(v2)) {
+            diff[key] = v2 ?? null;
+            continue;
+        }
+        if (!_.isEqual(v1, v2)) {
+            diff[key] = v2 ?? null;
+        }
+    }
+    return diff;
+};
 export default {
     ..._,
     isEmpty,
@@ -208,6 +225,7 @@ export default {
     parseJSON,
     jsonStringify,
     castArray,
+    changes,
 };
 // 個別エクスポートも提供
-export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, };
+export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };

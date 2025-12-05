@@ -302,6 +302,28 @@ const castArray = <T>(value: T|T[]|null|undefined): T[] => {
     return [value]
 }
 
+const changes = <T extends Record<string, any>, E extends Record<string, any>>(
+    sourceValue: T,
+    currentValue: E,
+    keys: string[]
+): Record<string, any> => {
+    const diff: Record<string, any> = {}
+
+    for (const key of keys) {
+        const v1 = _.get(sourceValue, key)
+        const v2 = _.get(currentValue, key)
+        if (_.isNil(v1) && _.isNil(v2)) continue
+        if (_.isNil(v1) || _.isNil(v2)) {
+            diff[key] = v2 ?? null
+            continue
+        }
+        if (!_.isEqual(v1, v2)) {
+            diff[key] = v2 ?? null
+        }
+    }
+
+    return diff
+}
 
 // @ts-ignore-next-line
 interface Ansuko extends LoDashStatic {
@@ -318,6 +340,7 @@ interface Ansuko extends LoDashStatic {
     parseJSON: typeof parseJSON
     jsonStringify: typeof jsonStringify
     castArray: typeof castArray
+    changes: typeof changes
 
     isNil: typeof isNil
     compact: typeof compact
@@ -616,6 +639,7 @@ export default {
     parseJSON,
     jsonStringify,
     castArray,
+    changes,
 } as Ansuko
 
 // 個別エクスポートも提供
@@ -633,4 +657,5 @@ export {
     parseJSON,
     jsonStringify,
     castArray,
+    changes,
 }

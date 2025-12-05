@@ -1,30 +1,67 @@
-import type { Ansuko } from "./index.d";
-declare const isValidStr: (str: unknown) => str is string;
+import { LoDashStatic } from "lodash";
+
 declare global {
     interface Array<T> {
-        notMap(predicate: (item: T) => boolean): boolean[];
-        notFilter(predicate: (item: T) => boolean): T[];
+        notMap(predicate: (item: T) => boolean): boolean[]
+        notFilter(predicate: (item: T) => boolean): T[]
     }
 }
-type MaybePromise<T> = T | Promise<T>;
-type MaybeFunction<T> = T | (() => MaybePromise<T>);
-declare const valueOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els: E | (() => E)) => MaybePromise<T | E>;
-declare const kanaToFull: (str: string) => string;
-declare const kanaToHira: (str: unknown) => string | null;
-declare const hiraToKana: (str: unknown) => string | null;
-declare const isEmpty: (value: unknown) => boolean;
-declare const toNumber: (value: unknown) => number | null;
-declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean;
-declare const waited: (func: () => void, frameCount?: number) => void;
-declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
-declare const parseJSON: <T = any>(str: string | object) => T | null;
-declare const jsonStringify: <T = any>(obj: T) => string | null;
-declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
+
+type MaybePromise<T> = T | Promise<T>
+type MaybeFunction<T> = T | (() => MaybePromise<T>)
+
+export declare const isValidStr: (str: unknown) => str is string
+
+export declare const valueOr: <T, E>(
+    value: MaybeFunction<MaybePromise<T | null | undefined>>,
+    els: E | (() => E)
+) => MaybePromise<T | E>
+
+export declare const kanaToFull: (str: string) => string
+export declare const kanaToHira: (str: unknown) => string | null
+export declare const hiraToKana: (str: unknown) => string | null
+export declare const isEmpty: (value: unknown) => boolean
+export declare const toNumber: (value: unknown) => number | null
+export declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean
+export declare const waited: (func: () => void, frameCount?: number) => void
+
+export declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>
+
+export declare const parseJSON: <T = any>(str: string | object) => T | null
+export declare const jsonStringify: <T = any>(obj: T) => string | null
+export declare const castArray: <T>(value: T | T[] | null | undefined) => T[]
+
 export type ChangesOptions = {
-    keyExcludes?: boolean;
-};
-declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions) => Record<string, any>;
-declare const _default: Ansuko;
-export default _default;
-export { isEmpty, toNumber, boolIf, kanaToFull, kanaToHira, hiraToKana, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, };
-//# sourceMappingURL=index.d.ts.map
+    keyExcludes?: boolean
+}
+
+export declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(
+    sourceValue: T,
+    currentValue: E,
+    keys: string[],
+    options?: ChangesOptions
+) => Record<string, any>
+
+/**
+ * Ansuko - Lodash の拡張ユーティリティライブラリ
+ * LoDash のすべての機能 + カスタム実装関数を提供
+ */
+interface AnsukoType extends LoDashStatic {
+    isValidStr: typeof isValidStr
+    valueOr: typeof valueOr
+    kanaToFull: typeof kanaToFull
+    kanaToHira: typeof kanaToHira
+    hiraToKana: typeof hiraToKana
+    isEmpty: typeof isEmpty
+    toNumber: typeof toNumber
+    boolIf: typeof boolIf
+    waited: typeof waited
+    equalsOr: typeof equalsOr
+    parseJSON: typeof parseJSON
+    jsonStringify: typeof jsonStringify
+    castArray: typeof castArray
+    changes: typeof changes
+}
+
+declare const _default: AnsukoType
+export default _default

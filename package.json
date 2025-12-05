@@ -6,11 +6,10 @@
   "type": "module",
   "files": [
     "dist",
-    "index.ts",
     "index.d.ts"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp index.d.ts dist/",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

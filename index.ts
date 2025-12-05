@@ -1,6 +1,12 @@
 import _, {LoDashStatic} from "lodash"
 import JSON5 from "json5"
-import type {Ansuko} from "./index.d"
+
+declare global {
+    interface Array<T> {
+        notMap(predicate: (item: T) => boolean): boolean[]
+        notFilter(predicate: (item: T) => boolean): T[]
+    }
+}
 
 const isValidStr = (str: unknown): str is string => {
     if (_.isNil(str)) { return false }
@@ -243,7 +249,7 @@ export default {
     jsonStringify,
     castArray,
     changes,
-} as Ansuko
+}
 
 // 個別エクスポートはそのまま
 export {

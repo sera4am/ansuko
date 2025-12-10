@@ -69,7 +69,8 @@ ansuko eliminates common JavaScript frustrations:
 
 ### Utilities
 
-- **`waited`** - Delay execution by N animation frames
+
+- **`waited`** - Delay execution by N animation frames (better than `setTimeout` for waiting on React renders or DOM updates)
 
 ## Documentation
 

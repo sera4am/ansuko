@@ -294,3 +294,44 @@ For frequently parsed JSON, cache the result:
 ```javascript
 const data = memoize(() => _.parseJSON(jsonStr))
 ```
+
+### Waiting for React State Updates
+
+Use `waited` instead of `setTimeout` to ensure state changes are rendered:
+```javascript
+// Before: unreliable timing
+function handleUpdate() {
+  setData(newData)
+  setTimeout(() => {
+    // May run before React renders
+    scrollToElement()
+  }, 0)
+}
+
+// After: waits for actual render
+async function handleUpdate() {
+  setData(newData)
+  await _.waited(1)  // waits 1 animation frame
+  scrollToElement()  // guaranteed to run after render
+}
+
+// Multiple state updates
+async function handleComplexUpdate() {
+  setStep1(data1)
+  await _.waited(1)
+  
+  setStep2(data2)
+  await _.waited(2)  // wait 2 frames for heavy render
+  
+  triggerAnimation()
+}
+
+// DOM measurements after state change
+async function measureElement() {
+  setExpanded(true)
+  await _.waited(1)
+  
+  const height = elementRef.current.offsetHeight  // accurate measurement
+  startAnimation(height)
+}
+```

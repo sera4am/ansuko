@@ -1,4 +1,4 @@
-import {LoDashStatic, size, isNil, debounce, isEqual} from "lodash";
+import {LoDashStatic, size, isNil, debounce, isEqual, last, first} from "lodash";
 
 declare global {
     interface Array<T> {
@@ -65,6 +65,8 @@ interface AnsukoType extends LoDashStatic {
     isNil: typeof isNil
     debounce: typeof debounce
     isEqual: typeof isEqual
+    first: typeof first,
+    last: typeof last
 }
 
 declare const _default: AnsukoType

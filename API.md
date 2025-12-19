@@ -468,4 +468,8 @@ _.waited(() => {
 
 ## All lodash functions
 
-All original lodash functions are available as well. Refer to [lodash documentation](https://lodash.com/docs) for complete reference.
+All original lodash functions are available as well.
+
+The original versions of the overridden methods (`isEmpty`, `toNumber`, `castArray`) are accessible as `isEmptyOrg`, `toNumberOrg`, and `castArrayOrg`, allowing you to choose the appropriate version for your use case.
+
+For complete reference, see the [lodash documentation](https://lodash.com/docs).

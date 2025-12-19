@@ -466,4 +466,9 @@ _.waited(() => {
 
 ## 全てのlodash関数
 
-元のlodash関数も全て利用可能です。完全なリファレンスは[lodashドキュメント](https://lodash.com/docs)を参照してください。
+元のlodash関数も全て利用可能です。
+isEmpty,toNumber,castArrayの書き換え前のメソッドは
+isEmptyOrg,toNumberOrg,castArrayOrgに用意してあるため、
+利用シーンに応じて使い分けてください。
+
+完全なリファレンスは[lodashドキュメント](https://lodash.com/docs)を参照してください。

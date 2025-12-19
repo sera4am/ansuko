@@ -2,6 +2,8 @@
 
 A modern JavaScript/TypeScript utility library that extends lodash with practical, intuitive behaviors.
 
+[English](./README.md) | [日本語](./README.ja.md)
+
 ## Why ansuko?
 
 The name "ansuko" comes from multiple meanings:
@@ -109,6 +111,9 @@ npm run build
 ```
 
 This will generate the compiled JavaScript and type definitions in the `dist` directory.
+
+## Development
+Developed by Sera with assistance from Claude (Anthropic) for documentation, code review, and technical discussions.
 
 ## License
 

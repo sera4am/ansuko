@@ -1,4 +1,10 @@
-import {LoDashStatic, size, isNil, debounce, isEqual, last, first, uniq, has, keys, values, some} from "lodash";
+import {
+    LoDashStatic, 
+    size, isNil, debounce, isEqual, last, first, uniq, has, keys, values, some,
+    isEmpty as isEmptyOrg,
+    toNumber as toNumberOrg,
+    castArray as castArrayOrg,
+} from "lodash";
 
 declare global {
     interface Array<T> {
@@ -16,8 +22,17 @@ export declare const valueOr: <T, E>(
     value: MaybeFunction<MaybePromise<T | null | undefined>>,
     els?: E | (() => E)
 ) => MaybePromise<T | E | undefined>
+export declare const hasOr: <T, E> (
+    value: MaybeFunction<MaybePromise<T | null | undefined>>,
+    paths: string | string[],
+    els?: E | ((val: T | null | undefined) => MaybePromise<E>)
+) => MaybePromise<T | E | undefined | null>
+export declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>
 
-export declare const kanaToFull: (str: string) => string
+export declare const toFullWidth: (value: unknown, withHaifun?: string) => string | null
+export declare const toHalfWidth: (value: unknown, withHaifun?: string) => string | null
+export declare const kanaToHalf: (str: unknown) => string | null
+export declare const kanaToFull: (str: string) => string | null
 export declare const kanaToHira: (str: unknown) => string | null
 export declare const hiraToKana: (str: unknown) => string | null
 export declare const isEmpty: (value: unknown) => boolean
@@ -25,11 +40,11 @@ export declare const toNumber: (value: unknown) => number | null
 export declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean
 export declare const waited: (func: () => void, frameCount?: number) => void
 
-export declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>
-
+export declare const haifun: (text?: string, replacement?: string, expandInterpretation?: boolean) => string | undefined
 export declare const parseJSON: <T = any>(str: string | object) => T | null
 export declare const jsonStringify: <T = any>(obj: T) => string | null
 export declare const castArray: <T>(value: T | T[] | null | undefined) => T[]
+
 
 export type ChangesOptions = {
     keyExcludes?: boolean
@@ -46,12 +61,15 @@ export declare const changes: <T extends Record<string, any>, E extends Record<s
  * Ansuko - Lodash の拡張ユーティリティライブラリ
  * LoDash のすべての機能 + カスタム実装関数を提供
  */
-interface AnsukoType extends LoDashStatic {
+interface AnsukoType extends Omit<LoDashStatic, "castArray" | "isEmpty" | "toNumber"> {
     isValidStr: typeof isValidStr
     valueOr: typeof valueOr
     kanaToFull: typeof kanaToFull
+    kanaToHalf: typeof kanaToHalf
     kanaToHira: typeof kanaToHira
     hiraToKana: typeof hiraToKana
+    toFullWidth: typeof toFullWidth
+    toHalfWidth: typeof toHalfWidth
     isEmpty: typeof isEmpty
     toNumber: typeof toNumber
     boolIf: typeof boolIf
@@ -72,6 +90,10 @@ interface AnsukoType extends LoDashStatic {
     keys: typeof keys
     values: typeof values
     some: typeof some
+    haifun: typeof haifun,
+    isEmptyOrg: typeof isEmptyOrg,
+    toNumberOrg: typeof toNumberOrg,
+    castArrayOrg: typeof castArrayOrg,
 }
 
 declare const _default: AnsukoType

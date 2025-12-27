@@ -1,100 +1,53 @@
-import {
-    LoDashStatic, 
-    size, isNil, debounce, isEqual, last, first, uniq, has, keys, values, some,
-    isEmpty as isEmptyOrg,
-    toNumber as toNumberOrg,
-    castArray as castArrayOrg,
-} from "lodash";
-
-declare global {
-    interface Array<T> {
-        notMap(predicate: (item: T) => boolean): boolean[]
-        notFilter(predicate: (item: T) => boolean): T[]
-    }
-}
-
-type MaybePromise<T> = T | Promise<T>
-type MaybeFunction<T> = T | (() => MaybePromise<T>)
-
-export declare const isValidStr: (str: unknown) => str is string
-
-export declare const valueOr: <T, E>(
-    value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els?: E | (() => E)
-) => MaybePromise<T | E | undefined>
-export declare const hasOr: <T, E> (
-    value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    paths: string | string[],
-    els?: E | ((val: T | null | undefined) => MaybePromise<E>)
-) => MaybePromise<T | E | undefined | null>
-export declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>
-
-export declare const toFullWidth: (value: unknown, withHaifun?: string) => string | null
-export declare const toHalfWidth: (value: unknown, withHaifun?: string) => string | null
-export declare const kanaToHalf: (str: unknown) => string | null
-export declare const kanaToFull: (str: string) => string | null
-export declare const kanaToHira: (str: unknown) => string | null
-export declare const hiraToKana: (str: unknown) => string | null
-export declare const isEmpty: (value: unknown) => boolean
-export declare const toNumber: (value: unknown) => number | null
-export declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean
-export declare const waited: (func: () => void, frameCount?: number) => void
-
-export declare const haifun: (text?: string, replacement?: string, expandInterpretation?: boolean) => string | undefined
-export declare const parseJSON: <T = any>(str: string | object) => T | null
-export declare const jsonStringify: <T = any>(obj: T) => string | null
-export declare const castArray: <T>(value: T | T[] | null | undefined) => T[]
-
-
+import _ from "lodash";
+declare const isValidStr: (str: unknown) => str is string;
+type MaybePromise<T> = T | Promise<T>;
+type MaybeFunction<T> = T | (() => MaybePromise<T>);
+declare const valueOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => E)) => MaybePromise<T | E | undefined | null>;
+declare const isEmpty: (value: unknown) => boolean;
+declare const toNumber: (value: unknown) => number | null;
+declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean;
+declare const waited: (func: () => void, frameCount?: number) => void;
+declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
+declare const parseJSON: <T = any>(str: string | object) => T | null;
+declare const jsonStringify: <T = any>(obj: T) => string | null;
+declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
 export type ChangesOptions = {
-    keyExcludes?: boolean
+    keyExcludes?: boolean;
+};
+type ChangesAfterCallback<T> = (value: T) => any | Promise<any>;
+type ChangesAfterFinallyCallback<T> = (value: T, res: any) => any | Promise<any>;
+declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions, finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>, notEmptyCallback?: ChangesAfterCallback<Record<string, any>>) => Record<string, any>;
+declare const arrayDepth: (ary: unknown) => number;
+declare const extend: <T>(this: any, plugin: (a: any) => T) => any & T;
+export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty" | "toNumber"> {
+    extend: typeof extend;
+    isValidStr: typeof isValidStr;
+    valueOr: typeof valueOr;
+    isEmpty: typeof isEmpty;
+    toNumber: typeof toNumber;
+    boolIf: typeof boolIf;
+    waited: typeof waited;
+    equalsOr: typeof equalsOr;
+    parseJSON: typeof parseJSON;
+    jsonStringify: typeof jsonStringify;
+    castArray: typeof castArray;
+    changes: typeof changes;
+    size: typeof _.size;
+    isNil: typeof _.isNil;
+    debounce: typeof _.debounce;
+    isEqual: typeof _.isEqual;
+    first: typeof _.first;
+    last: typeof _.last;
+    uniq: typeof _.uniq;
+    has: typeof _.has;
+    keys: typeof _.keys;
+    values: typeof _.values;
+    some: typeof _.some;
+    arrayDepth: typeof arrayDepth;
+    isEmptyOrg: typeof _.isEmpty;
+    toNumberOrg: typeof _.toNumber;
+    castArrayOrg: typeof _.castArray;
 }
-
-export declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(
-    sourceValue: T,
-    currentValue: E,
-    keys: string[],
-    options?: ChangesOptions
-) => Record<string, any>
-
-/**
- * Ansuko - Lodash の拡張ユーティリティライブラリ
- * LoDash のすべての機能 + カスタム実装関数を提供
- */
-interface AnsukoType extends Omit<LoDashStatic, "castArray" | "isEmpty" | "toNumber"> {
-    isValidStr: typeof isValidStr
-    valueOr: typeof valueOr
-    kanaToFull: typeof kanaToFull
-    kanaToHalf: typeof kanaToHalf
-    kanaToHira: typeof kanaToHira
-    hiraToKana: typeof hiraToKana
-    toFullWidth: typeof toFullWidth
-    toHalfWidth: typeof toHalfWidth
-    isEmpty: typeof isEmpty
-    toNumber: typeof toNumber
-    boolIf: typeof boolIf
-    waited: typeof waited
-    equalsOr: typeof equalsOr
-    parseJSON: typeof parseJSON
-    jsonStringify: typeof jsonStringify
-    castArray: typeof castArray
-    changes: typeof changes
-    size: typeof size
-    isNil: typeof isNil
-    debounce: typeof debounce
-    isEqual: typeof isEqual
-    first: typeof first
-    last: typeof last
-    uniq: typeof uniq
-    has: typeof has
-    keys: typeof keys
-    values: typeof values
-    some: typeof some
-    haifun: typeof haifun,
-    isEmptyOrg: typeof isEmptyOrg,
-    toNumberOrg: typeof toNumberOrg,
-    castArrayOrg: typeof castArrayOrg,
-}
-
-declare const _default: AnsukoType
-export default _default
+declare const _default: AnsukoType;
+export default _default;
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, arrayDepth, };

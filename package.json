@@ -5,18 +5,25 @@
   "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
-    "dist",
-    "index.d.ts"
+    "dist"
   ],
+  "exports": {
+    ".": "./dist/index.js",
+    "./plugins/ja": "./dist/plugins/ja.js",
+    "./plugins/geo": "./dist/plugins/geo.js",
+    "./plugins/prototype": "./dist/plugins/prototype.js"
+  },
   "scripts": {
-    "build": "tsc && cp index.d.ts dist/",
+    "build": "tsc",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@turf/turf": "^7.3.1",
     "json5": "^2.2.3",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.16",
     "@types/lodash": "^4.14.202",
     "typescript": "^5.3.3"
   },

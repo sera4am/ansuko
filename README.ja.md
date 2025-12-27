@@ -25,15 +25,16 @@ npm install github:sera/ansuko
 
 ## 基本理念
 
-ansukoはJavaScriptでよくあるイライラを解消します：
+ansukoはlodashとJavascriptでよくあるイライラを解消します：
 
 - `isEmpty(0)` が `true` を返して不用意なバグにイラ💢
 - `JSON.stringify("string")` が `"\"string\""` を返してきて💢
 - `castArray(null)` が `[null]` を返してきて💢
 - `JSON.parse()`にtry-catchを入れることでいちいちletを書かなきゃならないことに💢
-- `toNumber` がnilも0を返してくることに💢
-- 冗長な `a == b ? a : defaultValue` パターンを可能な限りやめたい(身勝手)
-- mb_convert_kanaを探す日々に💢
+- `JSON.parse()`にObjectやパース済みJSONを食わせると文字配列で返ってくることに💢
+- `toNumber` がnilも0を返してくることに💢、それでいて文字はNaNを返してくることに💢💢
+- 冗長な `a == b ? a : defaultValue` パターンを可能な限りやめたい(オレオレ関数)
+- mb_convert_kanaぽいjsを探して自作して捨てて三千里
 
 ## 主な機能
 
@@ -95,6 +96,14 @@ lodashにはいくつかの直感的でない動作があります：
 
 ansukoはこれらの問題を修正しつつ、lodashの優れたユーティリティとの互換性を維持しています。
 
+## 他のライブラリ試してみた？いいのあるけど？
+
+無駄に学習コストが高いのと、isEmptyなどは同じ動作を継承してるので結局メリットよりデメリットが高いと感じました。
+
+## valueOr, equalsOrって三項演算子や||、??で良くない？
+
+良くない！きっと良くない！良い使い道があるはず！はず…
+
 ## 依存関係
 
 - `lodash` - コアユーティリティ関数
@@ -111,7 +120,9 @@ npm run build
 
 ## 開発
 
-Seraによって開発され、ドキュメント作成、コードレビュー、壁打ちをClaude（Anthropic）で行っています。
+Seraによって開発され、ドキュメント作成、コードレビュー、壁打ちをClaude（Anthropic）で行いました。
+AIなので、ところどころ「違う違う」って思う使い方や指南しているところもあって、いずれ直そうと思います。
+valueOr、equalsOrはもっと賢い使い方がある気がしますが自分自身使いこなせてないです。
 
 ## ライセンス
 

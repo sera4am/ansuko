@@ -66,11 +66,20 @@ ansuko eliminates common JavaScript frustrations:
 ### Japanese Text
 
 - **`kanaToFull`**, **`kanaToHira`**, **`hiraToKana`** - Japanese character conversion
-- **`toHalfWidth`** - Full-width to half-width conversion
+- **`toHalfWidth`**, **`toFullWidth`**, **`haifun`** - 全角/半角変換とハイフン正規化
 - **`isValidStr`** - Non-empty string validation
 
-### Utilities
+### Geo Utilities (plugin: `@sera/ansuko/plugins/geo`)
 
+- **`toGeoJson`** / **`toPointGeoJson`** / **`toPolygonGeoJson`** など各種 GeoJSON 変換
+- **`unionPolygon`** - 複数Polygon/MultiPolygonのユニオン
+
+### Prototype Utilities (plugin: `@sera/ansuko/plugins/prototype`)
+
+- **`Array.prototype.notMap`** - predicateの否定結果でmap
+- **`Array.prototype.notFilter`** - predicateを否定してfilter
+
+### Utilities
 
 - **`waited`** - Delay execution by N animation frames (better than `setTimeout` for waiting on React renders or DOM updates)
 

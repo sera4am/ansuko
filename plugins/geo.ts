@@ -55,6 +55,16 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         ]
     }
 
+    /**
+     * 任意の座標/オブジェクトをPoint GeoJSONに変換します。
+     * Converts coords/object to Point GeoJSON.
+     * @param geo - [lng,lat] または {lat,lng} / coordinate pair or object
+     * @param digit - 小数桁を丸める / rounding digits
+     * @returns Pointまたはnull / Point or null
+     * @example toPointGeoJson([139.7671,35.6812]) // 東京駅
+     * @example toPointGeoJson({ lat:35.6895, lng:139.6917 }) // 新宿
+     * @category Geo Utilities
+     */
     const toPointGeoJson = (geo: any, digit?:number): GeoJSON.Point | null => {
         let lngLat: [number, number] | null = null
 
@@ -98,6 +108,17 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         }
     }
 
+    /**
+     * 外周リングをPolygon GeoJSONに変換します（閉じたリング必須）。
+     * Converts an outer ring to Polygon GeoJSON (ring must be closed).
+     * @param geo - [[lng,lat], ...] もしくはPolygon系GeoJSON / ring or GeoJSON
+     * @param digit - 小数桁を丸める / rounding digits
+     * @returns Polygonまたはnull / Polygon or null
+     * @example toPolygonGeoJson([
+     *   [139.70,35.68],[139.78,35.68],[139.78,35.75],[139.70,35.75],[139.70,35.68]
+     * ])
+     * @category Geo Utilities
+     */
     const toPolygonGeoJson = (geo: any, digit?: number): GeoJSON.Polygon | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) {  // [[外周リング]]
@@ -137,6 +158,15 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         }
     }
 
+    /**
+     * 座標列をLineString GeoJSONに変換し、自己交差があればnull。
+     * Converts coords to LineString; returns null if self-intersecting.
+     * @param geo - [[lng,lat], ...] またはLineString系GeoJSON / line coords
+     * @param digit - 小数桁 / rounding digits
+     * @returns LineStringまたはnull / LineString or null
+     * @example toLineStringGeoJson([[139.70,35.68],[139.75,35.70],[139.80,35.72]])
+     * @category Geo Utilities
+     */
     const toLineStringGeoJson = (geo: any, digit?: number): GeoJSON.LineString | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) {
@@ -173,6 +203,15 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         }
     }
 
+    /**
+     * 複数点をMultiPoint GeoJSONに変換します。
+     * Converts multiple points to MultiPoint GeoJSON.
+     * @param geo - [[lng,lat], ...] またはMultiPoint系GeoJSON / points
+     * @param digit - 小数桁 / rounding digits
+     * @returns MultiPointまたはnull / MultiPoint or null
+     * @example toMultiPointGeoJson([[139.70,35.68],[139.71,35.69],[139.72,35.70]])
+     * @category Geo Utilities
+     */
     const toMultiPointGeoJson = (geo: any, digit?: number): GeoJSON.MultiPoint | null => {
         let ll = null
         if (_.arrayDepth(geo) === 2) {  // MultiPointは2次元
@@ -206,6 +245,18 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         }
     }
 
+    /**
+     * 複数ポリゴンをMultiPolygon GeoJSONに変換（外周リングのみ使用）。
+     * Converts polygons (outer rings) to MultiPolygon GeoJSON.
+     * @param geo - 複数ポリゴン / polygons
+     * @param digit - 小数桁 / rounding digits
+     * @returns MultiPolygonまたはnull / MultiPolygon or null
+     * @example toMultiPolygonGeoJson([
+     *   [[[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]]],
+     *   [[[139.75,35.65],[139.85,35.65],[139.85,35.75],[139.75,35.75],[139.75,35.65]]]
+     * ])
+     * @category Geo Utilities
+     */
     const toMultiPolygonGeoJson = (geo: any, digit?: number): GeoJSON.MultiPolygon | null => {
         let ll = null
         if (_.arrayDepth(geo) === 4) {
@@ -247,6 +298,18 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     }
 
 
+    /**
+     * 複数LineStringをMultiLineString GeoJSONに変換（自己交差を検出）。
+     * Converts lines to MultiLineString, rejecting self-intersections.
+     * @param geo - 複数線分 / lines
+     * @param digit - 小数桁 / rounding digits
+     * @returns MultiLineStringまたはnull / MultiLineString or null
+     * @example toMultiLineStringGeoJson([
+     *   [[139.7,35.6],[139.8,35.65]],
+     *   [[139.75,35.62],[139.85,35.68]]
+     * ])
+     * @category Geo Utilities
+     */
     const toMultiLineStringGeoJson = (geo: any, digit?: number): GeoJSON.MultiLineString | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3) {
@@ -284,6 +347,18 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         }
     }
 
+    /**
+     * Polygon/MultiPolygonをユニオンし1つのGeometryにまとめます。
+     * Unions polygons into a single Polygon/MultiPolygon.
+     * @param geo - Polygon/MultiPolygon/FeatureCollectionなど / polygons input
+     * @param digit - 小数桁 / rounding digits
+     * @returns 結合Geometryまたはnull / Unified geometry or null
+     * @example unionPolygon([
+     *   [[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]],
+     *   [[139.75,35.65],[139.85,35.65],[139.85,35.75],[139.75,35.75],[139.75,35.65]]
+     * ])
+     * @category Geo Utilities
+     */
     const unionPolygon = (geo: any, digit?: number):GeoJSON.Polygon|GeoJSON.MultiPolygon|null => {
         let list:any = null
         const g:any  = geo
@@ -335,6 +410,21 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         return turf.union(turf.featureCollection(list))?.geometry ?? null
     }
 
+    /**
+     * 任意入力を指定タイプのGeoJSON Geometryへ変換（autoは次元の高い順に試行）。
+     * Converts input to GeoJSON geometry of given type (auto tries higher dimensions first).
+     * @param geo - 入力 / Input
+     * @param type - 変換タイプ / GeomType
+     * @param digit - 小数桁 / rounding digits
+     * @returns Geometryまたはnull / Geometry or null
+     * @example toGeoJson([139.7,35.6], GeomType.point)
+     * @example toGeoJson([[139.7,35.6],[139.8,35.7]], GeomType.lineString)
+     * @example toGeoJson(
+     *   [[[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]]],
+     *   GeomType.polygon
+     * )
+     * @category Geo Utilities
+     */
     const toGeoJson = (geo: any, type: GeomType = GeomType.auto, digit?: number): Geometry | null => {
 
         if (_.isEmpty(geo)) { return null }

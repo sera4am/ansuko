@@ -61,19 +61,16 @@ ansukoはlodashとJavascriptでよくあるイライラを解消します：
 
 ### 日本語テキスト処理
 
-- **`kanaToFull`**, **`kanaToHira`**, **`hiraToKana`** - カナ・ひらがな相互変換
-- **`toHalfWidth`**, **`toFullWidth`**, **`haifun`** - 全角/半角変換とハイフン正規化
+- **`kanaToFull`** - 半角カナを全角カナに
+- **`kanaToHira`** - カナをひらがなに
+- **`hiraToKana`** - ひらがなを全角カナに
+- **`toHalfWidth`** - 英数カナの全角から半角に(ハイフン統一化オプション)
+- **`toFullWidth`** - 半角を全て全角に(ハイフン統一化オプション)
 - **`isValidStr`** - 非空文字列の検証
 
-### Geo ユーティリティ（プラグイン: `@sera/ansuko/plugins/geo`）
+### ユーティリティ
 
-- **`toGeoJson`** / **`toPointGeoJson`** / **`toPolygonGeoJson`** など各種GeoJSON変換
-- **`unionPolygon`** - 複数Polygon/MultiPolygonのユニオン
-
-### Prototype ユーティリティ（プラグイン: `@sera/ansuko/plugins/prototype`）
-
-- **`Array.prototype.notMap`** - predicateの否定結果でmap
-- **`Array.prototype.notFilter`** - predicateを否定してfilter
+- **`waited`** - N個のアニメーションフレーム後に実行（ReactのレンダリングやDOM更新を待つ際に`setTimeout`より優れています）
 
 ## ドキュメント
 

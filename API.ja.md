@@ -1,474 +1,115 @@
-# APIリファレンス
-
-## lodash関数の改善
-
-### `isEmpty(value)`
-
-値が空かどうかをチェック。lodashと異なり、数値とbooleanは空とは見なされません。
-
-```javascript
-// lodashの動作（直感的でない）
-_.isEmpty(0)      // => true  (なぜ？？)
-_.isEmpty(false)  // => true  (混乱する！)
-
-// ansukoの動作（直感的）
-_.isEmpty(0)      // => false (0は有効な数値)
-_.isEmpty(false)  // => false (falseは有効なboolean)
-_.isEmpty(null)   // => true
-_.isEmpty('')     // => true
-_.isEmpty([])     // => true
-```
-
-### `castArray(value)`
-
-配列に変換。null/undefinedに対して`[null]`ではなく空配列を返します。
-
-```javascript
-// lodashの動作
-_.castArray(null)      // => [null]  (なぜ？？)
-_.castArray(undefined) // => [undefined]
-
-// ansukoの動作
-_.castArray(null)      // => []  (スッキリ！)
-_.castArray(undefined) // => []
-_.castArray([1, 2])    // => [1, 2]
-_.castArray(1)         // => [1]
-
-// もう.filter(Boolean)は不要
-_.castArray(maybeNull).map(process)  // そのまま動く！
-```
-
-## 数値とBoolean
-
-### `toNumber(value)`
-
-カンマと全角文字に対応した数値変換。無効な値には`NaN`ではなく`null`を返します。
-
-```javascript
-_.toNumber('1,234')       // => 1234
-_.toNumber('1,234.56')    // => 1234.56
-_.toNumber('１２３')      // => 123 (全角対応)
-_.toNumber(null)          // => null (NaNではない)
-_.toNumber('invalid')     // => null (NaNではない)
-```
-
-### `boolIf(value, defaultValue)`
-
-フォールバック付きの安全なboolean変換。
-
-```javascript
-_.boolIf(1, false)           // => true
-_.boolIf(0, false)           // => false
-_.boolIf('invalid', false)   // => false (デフォルト)
-```
-
-## 値の処理
-
-### `valueOr(value, defaultValue)`
-
-値を取得、またはデフォルト値を返す。null/undefinedを処理し、Promiseと関数評価をサポート。**Promiseを自動検出・処理** - 可能な場合は同期的に、必要な場合はPromiseを返します。
-
-```javascript
-// 基本的な使い方
-_.valueOr(null, 'default')           // => 'default'
-_.valueOr(0, 'default')              // => 0
-_.valueOr('', 'default')             // => 'default'
-
-// 遅延評価
-_.valueOr(null, () => expensiveCalculation())  // 必要な時だけ呼ばれる
-
-// Promiseサポート - 必要な時に自動的にPromiseを返す
-await _.valueOr(Promise.resolve(42), 0)        // => 42
-await _.valueOr(Promise.resolve(null), 0)      // => 0
-
-// 関数サポート（thunk）
-_.valueOr(() => 42, 'default')                 // => 42
-_.valueOr(() => null, 'default')               // => 'default'
-
-// Promise/同期の混在 - スマート検出
-const result1 = _.valueOr('sync', 'default')              // 同期: 'sync'
-const result2 = await _.valueOr(asyncFn(), 'default')     // Promise: 解決された値
-```
-
-### `equalsOr(value1, value2, defaultValue?)`
-
-値を比較し、一致しない場合にフォールバックを提供。nullとundefinedは等しいものとして扱います。**Promiseを自動処理** - 同期値には同期的に、非同期値にはPromiseを返します。
-
-```javascript
-// 基本的な比較
-_.equalsOr(userInput, 'expected', 'default')   // => 一致すればuserInput、そうでなければ'default'
-
-// APIバリデーション
-await _.equalsOr(fetchStatus(), 'success', 'failed')
-
-// 設定の検証
-_.equalsOr(config.mode, 'production', 'development')
-
-// nil値は等しいとみなされる
-_.equalsOr(null, undefined, 'default')         // => null (両方ともnil)
-
-// 2引数の使い方：valueOrとして動作
-_.equalsOr(null, 'default')                    // => 'default'
-
-// Promise処理 - 自動検出
-const sync = _.equalsOr('a', 'a', 'default')              // 同期: 'a'
-const async = await _.equalsOr(Promise.resolve('a'), 'a', 'default')  // Promise: 'a'
-
-// 実例：確認付きダイアログクローズ
-const onClose = () => {
-  // 変更なし：即座にクローズ（同期）
-  // 変更あり：確認ダイアログを表示（非同期）
-  _.equalsOr(original, edited, confirmDialog).then(actuallyClose)
-}
-```
-
-### `changes(sourceObj, currentObj, keys, options?)`
-
-指定されたキーで2つのオブジェクト間で変更された値のみを取得。データベース更新に最適。
-
-**型シグネチャ：**
-```typescript
-type ChangesOptions = {
-    keyExcludes?: boolean
-}
-
-function changes<T extends Record<string, any>, E extends Record<string, any>>(
-    sourceValue: T,
-    currentValue: E,
-    keys: string[],
-    options?: ChangesOptions
-): Record<string, any>
-```
-
-**オプション：**
-- `keyExcludes?: boolean` - `true`の場合、指定されたキーを除く全キーの変更を取得（キーフィルターを反転）
-
-**例：**
-```javascript
-// 基本的な使い方 - 特定のキーで比較
-const original = { name: 'John', age: 30, email: 'john@example.com' }
-const updated = { name: 'John', age: 31, email: 'john@example.com' }
-
-_.changes(original, updated, ['name', 'age', 'email'])
-// => { age: 31 }  (変更された値のみ)
-
-// null/undefinedの違いを処理
-const before = { status: 'active', notes: null }
-const after = { status: 'active', notes: undefined }
-
-_.changes(before, after, ['status', 'notes'])
-// => { notes: null }  (undefinedはDB保存のためnullに正規化)
-
-// lodashのget構文によるディープパスをサポート（注意：keyExcludesモードではディープパス非対応）
-_.changes(userA, userB, ['profile.bio', 'settings.theme', 'metadata.tags[0]'])
-// => { 'profile': {'bio': '新しい自己紹介'}, 'settings': {'theme': 'dark'} }
-
-// UPDATE クエリに最適
-const userChanges = _.changes(fetchedUser, editedUser, Object.keys(schema))
-db.update('users', userId, userChanges)  // 変更されたフィールドのみ更新
-
-// センシティブなフィールドを除外
-const changes = _.changes(original, updated, ['password', 'secret'], { keyExcludes: true })
-// passwordとsecretを除く全フィールドの変更を返す
-```
-
-## テキスト正規化
-
-### `haifun(text, replacement?, expandInterpretation?)`
-
-様々なハイフン、ダッシュ、横線文字を単一の一貫した文字に正規化。ユーザー入力に視覚的に似ているが技術的に異なるUnicode文字が含まれる場合のテキスト比較、検索、データベース操作に必須。
-
-**パラメータ：**
-- `text?: string` - 正規化するテキスト
-- `replacement?: string` - 置き換え文字（デフォルト：`"‐"` U+2010 HYPHEN）
-- `expandInterpretation?: boolean` - `true`の場合、波ダッシュ、チルダ、アンダースコア、点線も正規化（デフォルト：`false`）
-
-**戻り値：** `string | null` - 正規化された文字列、または入力がnull/undefinedの場合は`null`
-
-**正規化される文字：**
-
-**基本文字（常に正規化）：**
-- ASCIIハイフンマイナス（`-`）、enダッシュ（`–`）、emダッシュ（`—`）、水平バー（`―`）
-- 数学マイナス（`−`）、フィギュアダッシュ、改行不可ハイフン
-- 罫線文字（`─`、`━`、`╴`、`╶`など）
-- 線に見えるCJK文字（一、⼀、ㄧ、ㅡなど）
-- カタカナ/ハングル長音記号（`ー`、`ￚ`）
-- 古代数字記号（𐄐、𐆑）
-- その他20種類以上のUnicodeバリエーション
-
-**拡張文字（`expandInterpretation: true`の場合）：**
-- 波ダッシュとチルダ（`〜`、`~`）
-- アンダースコア（`_`、`＿`）
-- 上線/マクロン（`￣`、`ˉ`）
-- 点線/破線の罫線（`┄`、`┅`、`┈`、`┉`、`╌`、`╍`）
-- 右矢印（`→`）
-
-**例：**
-```javascript
-// 基本的な正規化
-_.haifun('test-one—two―three')
-// => 'test‐one‐two‐three'
-
-// 様々なダッシュを含む日本語テキスト
-_.haifun('東京ー大阪—名古屋')
-// => '東京‐大阪‐名古屋'
-
-// 混在するUnicodeダッシュ
-_.haifun('range: 2013–2024')  // enダッシュ
-// => 'range: 2013‐2024'
-
-// カスタム置換文字
-_.haifun('a-b—c', '-')
-// => 'a-b-c'
-
-// 拡張解釈（チルダ、アンダースコアなどを含む）
-_.haifun('file_name〜test', '‐', true)
-// => 'file‐name‐test'
-
-// データベース検索の正規化
-const searchTerm = _.haifun(userInput)
-const query = `SELECT * FROM products WHERE _.haifun(name) LIKE '%${searchTerm}%'`
-
-// テキスト比較
-const normalized1 = _.haifun(text1)
-const normalized2 = _.haifun(text2)
-if (normalized1 === normalized2) { /* マッチ！ */ }
-```
-
-**ユースケース：**
-- **検索**：ダッシュの種類に関係なくデータベースエントリとマッチするようユーザークエリを正規化
-- **重複排除**：異なるダッシュ文字による重複エントリを検出
-- **データインポート**：一貫性のないダッシュ使用のCSV/Excelデータをクリーンアップ
-- **住所マッチング**：ダッシュが異なる可能性がある住所を比較（例：郵便番号）
-- **商品コード**：様々なダッシュタイプのSKUや品番を正規化
-
-## JSONユーティリティ
-
-### `parseJSON(str)`
-
-安全なJSON/JSON5パース。エラー時は`null`を返し、try-catch不要。
-
-```javascript
-_.parseJSON('{"key": "value"}')           // => {key: "value"}
-_.parseJSON('{key: "value"}')             // => {key: "value"} (JSON5サポート)
-_.parseJSON('invalid')                    // => null (エラーをスローしない)
-_.parseJSON(null)                         // => null
-_.parseJSON({already: "object"})          // => {already: "object"}
-```
-
-### `jsonStringify(obj)`
-
-有効なオブジェクト/配列のみをstringify。誤った文字列/数値のstringifyを防止。
-
-```javascript
-_.jsonStringify({key: "value"})           // => '{"key":"value"}'
-_.jsonStringify("string")                 // => null ('"string"'を防ぐ)
-_.jsonStringify(123)                      // => null (オブジェクト/配列のみ)
-_.jsonStringify(null)                     // => null
-
-// JSON5文字列はJSONに正規化
-_.jsonStringify('{key: "value"}')         // => '{"key":"value"}'
-```
-
-## 日本語テキスト処理
-
-### `toFullWidth(value, withHaifun?)`
-
-半角文字を全角に変換、オプションでハイフン正規化。全角入力を要求する日本の住所フォームに最適。
-
-**パラメータ：**
-- `value: unknown` - 変換する値
-- `withHaifun?: string` - ハイフン用のオプション置換文字（例：`'ー'`）
-
-**処理：**
-1. 半角カタカナを全角に変換（`kanaToFull`を使用）
-2. 半角英数字を全角に変換
-3. 半角スペースを全角スペースに変換
-4. オプションで全てのハイフンを指定文字に正規化
-
-**例：**
-```javascript
-// 基本的な変換
-_.toFullWidth('ABC123')
-// => 'ＡＢＣ１２３'
-
-// 半角カナ付き
-_.toFullWidth('ｱｲｳ ABC-123')
-// => 'アイウ　ＡＢＣ−１２３'
-
-// ハイフン統一付き住所正規化
-_.toFullWidth('東京都千代田区1-2-3', 'ー')
-// => '東京都千代田区１ー２ー３'
-
-// 混在入力の処理
-_.toFullWidth('ｱｲﾁｹﾝ ABC-1-23', 'ー')
-// => 'アイチケン　ＡＢＣー１ー２ー３'
-```
-
-**ユースケース - 日本の住所フォーム：**
-多くの日本のWebフォームは住所に全角入力を要求します。バリデーションエラーを表示する代わりに、ユーザー入力を自動的に正規化：
-
-```javascript
-// ユーザーフレンドリーなフォーム処理
-const normalizedAddress = _.toFullWidth(userInput, 'ー')
-// どんな入力形式も受け付け、フォーム要件に変換
-```
-
-### `toHalfWidth(value, withHaifun?)`
-
-全角文字を半角に変換、オプションでハイフン正規化。
-
-**パラメータ：**
-- `value: unknown` - 変換する値
-- `withHaifun?: string` - ハイフン用のオプション置換文字（例：`'-'`）
-
-**処理：**
-1. 全角英数字を半角に変換
-2. 全角スペースを半角スペースに変換
-3. オプションで全てのハイフンを指定文字に正規化
-
-**例：**
-```javascript
-// 基本的な変換
-_.toHalfWidth('ＡＢＣ１２３')
-// => 'ABC123'
-
-// ハイフン正規化付き
-_.toHalfWidth('東京都千代田区１ー２ー３', '-')
-// => '東京都千代田区1-2-3'
-
-// 全角スペースの処理
-_.toHalfWidth('ＡＢＣ　１２３')
-// => 'ABC 123'
-```
-
-### `kanaToFull(str)`
-
-半角カタカナを全角に変換、濁点（゛）と半濁点（゜）の結合文字を適切に処理。
-
-```javascript
-_.kanaToFull('ｱｲｳｴｵ')  // => 'アイウエオ'
-_.kanaToFull('ｶﾞｷﾞｸﾞｹﾞｺﾞ')  // => 'ガギグゲゴ' (濁点が正しく処理される)
-_.kanaToFull('ﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟ')  // => 'パピプペポ' (半濁点が正しく処理される)
-```
-
-### `kanaToHalf(str)`
-
-全角カタカナを半角に変換、濁点と半濁点を適切に分割。
-
-**注意：** 半角カタカナは結合文字を使用するため、出力の長さが入力と異なる場合があります。
-
-```javascript
-_.kanaToHalf('アイウエオ')  // => 'ｱｲｳｴｵ'
-_.kanaToHalf('ガギグゲゴ')  // => 'ｶﾞｷﾞｸﾞｹﾞｺﾞ' (濁点文字ごとに2文字)
-_.kanaToHalf('パピプペポ')  // => 'ﾊﾟﾋﾟﾌﾟﾍﾟﾎﾟ' (半濁点文字ごとに2文字)
-```
-
-**警告：** 半角カタカナはレガシーシステムで問題を引き起こす可能性があり、モダンなアプリケーションでは一般的に推奨されません。互換性のために必要な場合のみ使用してください。
-
-### `kanaToHira(str)`
-
-カタカナをひらがなに変換。
-
-```javascript
-_.kanaToHira('アイウエオ')  // => 'あいうえお'
-_.kanaToHira('カタカナ')    // => 'かたかな'
-```
-
-### `hiraToKana(str)`
-
-ひらがなをカタカナに変換。
-
-```javascript
-_.hiraToKana('あいうえお')  // => 'アイウエオ'
-_.hiraToKana('ひらがな')    // => 'ヒラガナ'
-```
-
-### `isValidStr(str)`
-
-値が非空文字列かどうかをチェック。
-
-```javascript
-_.isValidStr('')             // => false
-_.isValidStr('hello')        // => true
-_.isValidStr(null)           // => false
-```
-
-## アニメーション
-
-### `waited(func, frameCount)`
-
-`requestAnimationFrame`を使用してN個のアニメーションフレーム後に関数を実行。レンダリング更新を待つ際の恣意的な`setTimeout`遅延を排除。
-
-**パラメータ：**
-- `func: () => void` - 待機後に実行する関数
-- `frameCount?: number` - 最初の`requestAnimationFrame`の後に待つ**追加の**フレーム数（デフォルト：`0`）
-  - `0` = 次のフレームで実行（1回のRAF呼び出し）
-  - `1` = 2フレーム後に実行（2回のRAF呼び出し）
-  - `2` = 3フレーム後に実行（3回のRAF呼び出し）
-
-**なぜ`setTimeout`ではなく`waited`を使うのか？**
-
-フレームベースのタイミングは、CPU速度に関係なく実際のDOM更新後の実行を保証し、競合状態と過剰な待機の両方を防ぎます。ミリ秒ではなくフレーム数を指定することで、デバイスパフォーマンスに関係なく実際のレンダリングサイクルにタイミングが適応します。
-
-**これはフレームワークの状態更新**（ReactのsetStateなど）がDOMに反映されるのを待つ場合に特に有用です。
-
-**例：**
-```javascript
-// 基本的な使い方 - 1フレーム待機
-_.waited(() => {
-  console.log('1フレーム後に実行')
-}, 1)
-
-// Reactの状態のレンダリングを待つ
-function handleUpdate() {
-  setData(newData)
-  _.waited(() => {
-    // React のレンダリング後の実行が保証される
-    scrollToElement()
-    measureHeight()
-  }, 1) // 2フレーム待機
-}
-
-// 重いレンダリング - さらに多くのフレームを待つ
-function complexUpdate() {
-  setComplexState(data)
-  _.waited(() => {
-    // 重いレンダリング用に3フレーム待機
-    startAnimation()
-  }, 2)
-}
-
-// 即座に次のフレーム（frameCount = 0）
-_.waited(() => {
-  console.log('次のアニメーションフレームで実行')
-})
-```
-
-**一般的なユースケース：**
-- React/Vueの状態更新のレンダリングを待つ
-- 動的コンテンツ変更後のDOM測定
-- レイアウト計算後にアニメーションを確実に開始
-- ブラウザのレンダリングサイクルとの同期
-
-**`setTimeout`との比較：**
-```javascript
-// ❌ 悪い：恣意的な遅延、早すぎたり遅すぎたりする可能性
-setTimeout(() => {
-  const height = element.offsetHeight  // 間違っている可能性！
-}, 100)
-
-// ✅ 良い：実際のフレームを待つ
-_.waited(() => {
-  const height = element.offsetHeight  // 正確！
-}, 1)
-```
-
-## 全てのlodash関数
-
-元のlodash関数も全て利用可能です。
-isEmpty,toNumber,castArrayの書き換え前のメソッドは
-isEmptyOrg,toNumberOrg,castArrayOrgに用意してあるため、
-利用シーンに応じて使い分けてください。
-
-完全なリファレンスは[lodashドキュメント](https://lodash.com/docs)を参照してください。
+# API リファレンス
+
+## Core Functions
+- **isEmpty(value)**  
+  数値/booleanは空としない直感的な空判定。  
+  @category Core Functions  
+  @example `_.isEmpty(0) // false`
+- **boolIf(value, defaultValue?)**  
+  真偽値へ安全に変換。数値は0判定、それ以外はデフォルト。  
+  @category Core Functions  
+  @example `_.boolIf('x', true) // true`
+- **waited(func, frameCount?)**  
+  requestAnimationFrameでNフレーム後に実行。  
+  @category Core Functions  
+  @example `_.waited(() => measure(), 1)`
+- **extend(plugin)**  
+  プラグインを適用して拡張インスタンスを返す。  
+  @category Core Functions  
+  @example `const _ja = _.extend(jaPlugin)`
+
+## Type Guards
+- **isValidStr(value)**  
+  非空文字列のみtrue。  
+  @category Type Guards  
+  @example `_.isValidStr('hello') // true`
+
+## Conversion
+- **toNumber(value)**  
+  全角/カンマ対応の数値化。無効はnull。  
+  @category Core Functions  
+  @example `_.toNumber('1,234') // 1234`
+- **parseJSON(str)**  
+  JSON/JSON5を安全にパース（失敗時null）。  
+  @category Conversion  
+  @example `_.parseJSON('{a:1}') // {a:1}`
+- **jsonStringify(obj)**  
+  オブジェクト/配列のみstringify、文字列/数値はnull。  
+  @category Conversion  
+  @example `_.jsonStringify('{a:1}') // '{"a":1}'`
+
+## Promise Utilities
+- **valueOr(value, elseValue)**  
+  nil/空ならデフォルト。関数・Promise自動判定。  
+  @category Promise Utilities  
+  @example `await _.valueOr(fetch('/api').then(r=>r.json()), {})`
+- **equalsOr(v1, v2, elseValue?)**  
+  等しければ値、異なればデフォルト。nil同士は等価。Promise対応。  
+  @category Promise Utilities  
+  @example `await _.equalsOr(fetchStatus(),'ok','ng')`
+- **hasOr(value, paths, elseValue)**  
+  全パス存在で値、なければデフォルト。Promise対応。  
+  @category Promise Utilities  
+  @example `await _.hasOr(fetchUser(), ['profile.name','id'], null)`
+
+## Object Utilities
+- **changes(source, current, keys, options?, finallyCb?, notEmptyCb?)**  
+  差分取得（ディープパス可、keyExcludesはトップレベル除外）。  
+  @category Object Utilities  
+  @example `_.changes(o1,o2,['name','profile.bio'])`  
+  @example `_.changes(orig,curr,['id'], { keyExcludes:true })`
+
+## Array Utilities
+- **castArray(value)**  
+  nil→[]（lodashの[null]問題解消）。  
+  @category Array Utilities  
+  @example `_.castArray(null) // []`
+- **arrayDepth(array)**  
+  配列のネスト深さ。非配列0、空配列1。  
+  @category Array Utilities  
+  @example `_.arrayDepth([[[1]]]) // 3`
+- **Array.prototype.notMap(predicate)**  
+  predicateの否定結果をboolean配列で返す。  
+  @category Array Utilities  
+  @example `[1,2,3].notMap(n=>n>1) // [true,false,false]`
+- **Array.prototype.notFilter(predicate)**  
+  predicateを否定してfilter。  
+  @category Array Utilities  
+  @example `[1,2,3].notFilter(n=>n%2===0) // [1,3]`
+
+## String Utilities
+- **haifun(text, replacement?, expandInterpretation?)**  
+  多様なハイフン/ダッシュを1文字に正規化。  
+  @category String Utilities  
+  @example `_.haifun('ABC—123−XYZ','-') // 'ABC-123-XYZ'`
+
+## Japanese Utilities（plugin: `./plugins/ja`）
+- **kanaToFull(str)** — 半角カナ→全角カナ  
+- **kanaToHalf(str)** — 全角カナ→半角カナ（濁点分割の可能性）  
+- **kanaToHira(str)** — カナ→ひらがな（半角は自動全角化）  
+- **hiraToKana(str)** — ひらがな→カナ  
+- **toFullWidth(value, withHaifun?)** — 半角→全角、ハイフン統一可  
+- **toHalfWidth(value, withHaifun?)** — 全角→半角、ハイフン統一可  
+- **haifun(...)** — 上記正規化関数  
+@category Japanese Utilities  
+@example `_.toFullWidth('ABC-123','ー') // 'ＡＢＣー１２３'`
+
+## Geo Utilities（plugin: `./plugins/geo`）
+- **toGeoJson(geo, type?, digit?)** — 入力を指定Geometryに変換（autoは高次元優先）  
+- **toPointGeoJson(geo, digit?)** — Point  
+- **toPolygonGeoJson(geo, digit?)** — 閉じた外周リングをPolygonに  
+- **toLineStringGeoJson(geo, digit?)** — LineString（自己交差を拒否）  
+- **toMultiPointGeoJson(geo, digit?)** — MultiPoint  
+- **toMultiPolygonGeoJson(geo, digit?)** — 複数ポリゴンをMultiPolygonに  
+- **toMultiLineStringGeoJson(geo, digit?)** — 複数線分をMultiLineStringに（自己交差チェック）  
+- **unionPolygon(geo, digit?)** — Polygon/MultiPolygonをユニオン  
+@category Geo Utilities  
+@example `toPointGeoJson({ lat:35.6812, lng:139.7671 })`
+
+## String Normalization（日本語向け）
+- **haifun** — 住所・SKU・郵便番号などのダッシュ表記揺れを比較/検索前に正規化。
+
+---
+
+lodashオリジナルは `isEmptyOrg`, `toNumberOrg`, `castArrayOrg` で利用可能。  
+プラグインは `extend(jaPlugin)`, `extend(geoPlugin)`, `extend(prototypePlugin)` で適用してください。

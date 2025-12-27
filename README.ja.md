@@ -105,7 +105,22 @@ ansukoはこれらの問題を修正しつつ、lodashの優れたユーティ�
 
 ## valueOr, equalsOrって三項演算子や||、??で良くない？
 
-良くない！きっと良くない！良い使い道があるはず！はず…
+良くない！きっと良くない！多分良くない！
+例えば 
+```javascript
+_.equalsOr(original, edited, onConfirmAndSave).then(onClose)
+/* originalとeditedを比較して差異があればconfirm and save、等しいかconfirmAndSaveが終わったらonClose */
+```
+とか
+```javascript
+const editedData = useMemo(() => _.changes(original, edited, ["id", "created_at"], {excludeKeys: true}), [original, edited]) // 変更データのmemo(idとcreated_atを無視)
+...
+const _onClose = useCallbacK(async () => 
+  await _.valueOr(_.isEmpty(editedData), () => onConfirmAndSave()) // editedDataがあったら確認及び保存(Promise)
+  onClose()
+, [editedData, onClose, onConfirmAndSave])
+```
+みたいに！楽になる！
 
 ## 依存関係
 

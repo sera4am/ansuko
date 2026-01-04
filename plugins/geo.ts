@@ -429,6 +429,10 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
 
         if (_.isEmpty(geo)) { return null }
 
+        if (typeof geo === "string") {
+            geo = _.parseJSON(geo)
+        }
+
         switch (type) {
             case GeomType.point:
                 return toPointGeoJson(geo, digit)

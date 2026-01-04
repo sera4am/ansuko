@@ -462,6 +462,8 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
     isNil: typeof _.isNil
     debounce: typeof _.debounce
     isEqual: typeof _.isEqual
+    isBoolean: typeof _.isBoolean
+    isString: typeof _.isString
     first: typeof _.first
     last: typeof _.last
     uniq: typeof _.uniq

@@ -34,7 +34,7 @@ type MaybeFunction<T> = T | (() => MaybePromise<T>)
 
 const valueOr = <T, E>(
     value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els?: E | (() => E)
+    els?: E | (() => MaybePromise<E>)
 ): MaybePromise<T | E | undefined | null> => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
@@ -42,28 +42,56 @@ const valueOr = <T, E>(
         : value
 
     // Promiseかチェック
-    if (resolvedValue instanceof Promise || els instanceof Promise) {
-        // Promise処理ブランチ
+    if (resolvedValue instanceof Promise) {
         return Promise.resolve(resolvedValue).then(res => {
-            if (_.isNil(res) || _.isEmpty(res)) {
+            if (_.isNil(res) || isEmpty(res)) {
                 if (typeof els === "function") {
                     return (els as () => E)()
                 }
-                return els as any
+                return els
             }
-            return res as T
+            return res
         })
-    } else {
-        // 同期処理ブランチ
-        if (_.isNil(resolvedValue) || _.isEmpty(resolvedValue)) {
-            if (typeof els === "function") {
-                return (els as () => E)()
-            }
-            return els as any
-        }
-        return resolvedValue as T
     }
+    if(!_.isNil(resolvedValue) && !isEmpty(resolvedValue)) {
+        return resolvedValue
+    }
+    if (typeof els === "function") {
+        return (els as () => E)()
+    }
+    return els
 }
+
+const emptyOr = <T, E>(
+    value: MaybeFunction<MaybePromise<T | null | undefined>>,
+    els?: E | ((val: T | null | undefined) => MaybePromise<E>)
+):MaybePromise<T | E | undefined | null> => {
+    // 関数を解決
+    const resolvedValue = typeof value === "function"
+        ? (value as () => MaybePromise<T | null | undefined>)()
+        : value
+
+    // Promiseかチェック
+    if (resolvedValue instanceof Promise) {
+        return Promise.resolve(resolvedValue).then(res => {
+            if (_.isNil(res) || isEmpty(res)) {
+                return null
+            }
+            if (typeof els === "function") {
+                return (els as (val: T|null|undefined) => E)(res)
+            }
+            return els
+        })
+    }
+    if (_.isNil(resolvedValue) || isEmpty(resolvedValue)) {
+        return null
+    }
+    if (typeof els === "function") {
+        return (els as (val:T) => E)(resolvedValue)
+    }
+    return els
+}
+
 
 /**
  * パスが全て存在するかを確認し、無ければデフォルトを返します。関数・Promise対応。
@@ -90,32 +118,29 @@ const hasOr = <T, E>(
 
     // パスが全て存在するかチェック
     const checkPaths = (val: any) => {
-        if (_.isNil(val) || _.isEmpty(val)) return false
+        if (_.isNil(val) || isEmpty(val)) return false
         return pathArray.every(path => _.has(val, path))
     }
 
     // Promiseかチェック
-    if (resolvedValue instanceof Promise || els instanceof Promise) {
-        // Promise処理ブランチ
+    if (resolvedValue instanceof Promise) {
         return Promise.resolve(resolvedValue).then(res => {
             if (!checkPaths(res)) {
                 if (typeof els === "function") {
-                    return Promise.resolve((els as (val: T | null | undefined) => MaybePromise<E>)(res))
+                    return (els as (val:T|null|undefined) => MaybePromise<E>)(res)
                 }
                 return els as E
             }
             return res as T
         })
-    } else {
-        // 同期処理ブランチ
-        if (!checkPaths(resolvedValue)) {
-            if (typeof els === "function") {
-                return (els as (val: T | null | undefined) => E)(resolvedValue)
-            }
-            return els as E
-        }
-        return resolvedValue as T
     }
+    if (!checkPaths(resolvedValue)) {
+        if (typeof els === "function") {
+            return (els as (val:T|null|undefined) => E)(resolvedValue)
+        }
+        return els as E
+    }
+    return resolvedValue as T
 }
 
 /**
@@ -449,6 +474,7 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
     extend: typeof extend
     isValidStr: typeof isValidStr
     valueOr: typeof valueOr
+    emptyOr: typeof emptyOr
     isEmpty: typeof isEmpty
     toNumber: typeof toNumber
     boolIf: typeof boolIf
@@ -490,6 +516,7 @@ export default {
     isValidStr,
     valueOr,
     equalsOr,
+    emptyOr,
     hasOr,
     waited,
     parseJSON,

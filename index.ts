@@ -53,7 +53,7 @@ const valueOr = <T, E>(
             return res
         })
     }
-    if(!_.isNil(resolvedValue) && !isEmpty(resolvedValue)) {
+    if (!_.isNil(resolvedValue) && !isEmpty(resolvedValue)) {
         return resolvedValue
     }
     if (typeof els === "function") {
@@ -65,7 +65,7 @@ const valueOr = <T, E>(
 const emptyOr = <T, E>(
     value: MaybeFunction<MaybePromise<T | null | undefined>>,
     els?: E | ((val: T | null | undefined) => MaybePromise<E>)
-):MaybePromise<T | E | undefined | null> => {
+): MaybePromise<T | E | undefined | null> => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
         ? (value as () => MaybePromise<T | null | undefined>)()
@@ -78,7 +78,7 @@ const emptyOr = <T, E>(
                 return null
             }
             if (typeof els === "function") {
-                return (els as (val: T|null|undefined) => E)(res)
+                return (els as (val: T | null | undefined) => E)(res)
             }
             return els
         })
@@ -87,7 +87,7 @@ const emptyOr = <T, E>(
         return null
     }
     if (typeof els === "function") {
-        return (els as (val:T) => E)(resolvedValue)
+        return (els as (val: T) => E)(resolvedValue)
     }
     return els
 }
@@ -127,7 +127,7 @@ const hasOr = <T, E>(
         return Promise.resolve(resolvedValue).then(res => {
             if (!checkPaths(res)) {
                 if (typeof els === "function") {
-                    return (els as (val:T|null|undefined) => MaybePromise<E>)(res)
+                    return (els as (val: T | null | undefined) => MaybePromise<E>)(res)
                 }
                 return els as E
             }
@@ -136,7 +136,7 @@ const hasOr = <T, E>(
     }
     if (!checkPaths(resolvedValue)) {
         if (typeof els === "function") {
-            return (els as (val:T|null|undefined) => E)(resolvedValue)
+            return (els as (val: T | null | undefined) => E)(resolvedValue)
         }
         return els as E
     }
@@ -169,17 +169,53 @@ const isEmpty = (value: unknown): boolean => {
  * @example toNumber('abc') // null
  * @category Core Functions
  */
-const toNumber = (value: unknown): number|null => {
+const toNumber = (value: unknown): number | null => {
     if (_.isNil(value)) { return null }
     if (_.isNumber(value)) { return value as number }
     if (isEmpty(value)) { return null }
-    let v:string|number|null = toHalfWidth(value as string | number)
+    let v: string | number | null = toHalfWidth(value as string | number)
     if (typeof v === "string" && v.trim().match(/^[0-9][0-9,.]*$/)) {
         v = _.toNumber(v.trim().replace(/,/g, ""))
     } else {
         v = _.toNumber(v)
     }
     return _.isNaN(v) ? null : v as number
+}
+
+const toBool = (value: unknown, undetected:boolean|null = null): MaybePromise<boolean|null> => {
+    if (_.isNil(value)) { return false }
+    if (isEmpty(value)) { return false }
+    if (_.isBoolean(value)) { return value }
+    if (_.isNumber(value)) { return value !== 0 }
+    const n = toNumber(value)
+    if (n !== null) return !!n
+
+    if (typeof value === "string") {
+        switch (value.toLowerCase()) {
+            case "true":
+            case "t":
+            case "y":
+            case "yes":
+            case "ok":
+                return true
+            case "false":
+            case "f":
+            case "n":
+            case "no":
+            case "ng":
+                return false
+            default:
+
+        }
+    }
+    if (typeof value === "function") {
+        const r = value()
+        if (r instanceof Promise) {
+            return r.then(toBool)
+        }
+        return toBool(r)
+    }
+    return undetected
 }
 
 /**
@@ -281,7 +317,7 @@ const equalsOr = <T, E>(...args: any[]): MaybePromise<T | E | null> => {
  * @example parseJSON('{a:1}') // {a:1} (JSON5)
  * @category Conversion
  */
-const parseJSON = <T = any> (str: string|object): T|null => {
+const parseJSON = <T = any>(str: string | object): T | null => {
     if (_.isNil(str)) { return null }
     if (typeof str === "object") {
         return str as T
@@ -302,8 +338,8 @@ const parseJSON = <T = any> (str: string|object): T|null => {
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
-const jsonStringify = <T = any>(obj: T): string|null => {
-    if(_.isNil(obj)) { return null }
+const jsonStringify = <T = any>(obj: T): string | null => {
+    if (_.isNil(obj)) { return null }
     if (typeof obj === "string") {
         try {
             const j = JSON5.parse(obj)
@@ -331,7 +367,7 @@ const jsonStringify = <T = any>(obj: T): string|null => {
  * @example castArray(null) // []
  * @category Array Utilities
  */
-const castArray = <T>(value: T|T[]|null|undefined): T[] => {
+const castArray = <T>(value: T | T[] | null | undefined): T[] => {
     if (_.isNil(value)) { return [] }
     return _.castArray(value) as T[]
 }
@@ -406,7 +442,7 @@ const changes = <T extends Record<string, any>, E extends Record<string, any>>(
         }
     }
 
-    let notEmptyRes:any = true
+    let notEmptyRes: any = true
     if (!isEmpty(diff) && notEmptyCallback) {
         notEmptyRes = notEmptyCallback(diff)
         if (notEmptyRes instanceof Promise) {
@@ -440,7 +476,7 @@ const changes = <T extends Record<string, any>, E extends Record<string, any>>(
  * @example arrayDepth('not array') // 0
  * @category Array Utilities
  */
-const arrayDepth = (ary:unknown):number => {
+const arrayDepth = (ary: unknown): number => {
     if (!Array.isArray(ary)) { return 0 }
     if (_.size(ary) === 0) { return 1 }
     return 1 + Math.min(...(ary as []).map(arrayDepth))
@@ -477,6 +513,7 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
     emptyOr: typeof emptyOr
     isEmpty: typeof isEmpty
     toNumber: typeof toNumber
+    toBool: typeof toBool
     boolIf: typeof boolIf
     waited: typeof waited
     equalsOr: typeof equalsOr
@@ -512,6 +549,7 @@ export default {
     castArrayOrg: _.castArray,
     isEmpty,
     toNumber,
+    toBool,
     boolIf,
     isValidStr,
     valueOr,

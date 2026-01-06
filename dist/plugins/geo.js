@@ -28,7 +28,6 @@ const ansukoGeoPlugin = (ansuko) => {
             tLng = _.toNumber(coord.lng ?? coord.lon ?? coord.longitude);
             tLat = _.toNumber(coord.lat ?? coord.latitude);
         }
-        console.log(tLat, tLng, _.toNumber(coord[0]));
         if (!tLat || !tLng) {
             return null;
         }
@@ -46,11 +45,11 @@ const ansukoGeoPlugin = (ansuko) => {
     /**
      * 任意の座標/オブジェクトをPoint GeoJSONに変換します。
      * Converts coords/object to Point GeoJSON.
-     * @param geo - [lng,lat] もしくは {lat,lng} など / coords or object
-     * @param digit - 小数桁数を丸め / rounding digits
-     * @returns GeoJSON Point または null / Point or null
-     * @example toPointGeoJson([139.6917,35.6895]) // Tokyo
-     * @example toPointGeoJson({ lat:35.6812, lng:139.7671 }) // Tokyo Station
+     * @param geo - [lng,lat] または {lat,lng} / coordinate pair or object
+     * @param digit - 小数桁を丸める / rounding digits
+     * @returns Pointまたはnull / Point or null
+     * @example toPointGeoJson([139.7671,35.6812]) // 東京駅
+     * @example toPointGeoJson({ lat:35.6895, lng:139.6917 }) // 新宿
      * @category Geo Utilities
      */
     const toPointGeoJson = (geo, digit) => {
@@ -108,11 +107,13 @@ const ansukoGeoPlugin = (ansuko) => {
     };
     /**
      * 外周リングをPolygon GeoJSONに変換します（閉じたリング必須）。
-     * Converts outer ring to Polygon GeoJSON (must be closed).
-     * @param geo - [[lng,lat],...] またはGeoJSON / ring or GeoJSON
-     * @param digit - 小数桁数 / rounding digits
-     * @returns Polygon Geometryまたはnull / Polygon or null
-     * @example toPolygonGeoJson([[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]])
+     * Converts an outer ring to Polygon GeoJSON (ring must be closed).
+     * @param geo - [[lng,lat], ...] もしくはPolygon系GeoJSON / ring or GeoJSON
+     * @param digit - 小数桁を丸める / rounding digits
+     * @returns Polygonまたはnull / Polygon or null
+     * @example toPolygonGeoJson([
+     *   [139.70,35.68],[139.78,35.68],[139.78,35.75],[139.70,35.75],[139.70,35.68]
+     * ])
      * @category Geo Utilities
      */
     const toPolygonGeoJson = (geo, digit) => {
@@ -122,7 +123,6 @@ const ansukoGeoPlugin = (ansuko) => {
         }
         else if (_.arrayDepth(geo) === 2) { // [外周リング]
             ll = geo.map((coord) => toLngLatToArray(coord, digit));
-            console.log("[PolygonGeoJson]", "parse", ll);
         }
         else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
@@ -167,12 +167,12 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-     * LineString GeoJSONへ変換し、自己交差があればnull。
-     * Converts to LineString; returns null if self-intersecting.
-     * @param geo - 線分座標配列 / line coords
-     * @param digit - 小数桁数 / rounding digits
+     * 座標列をLineString GeoJSONに変換し、自己交差があればnull。
+     * Converts coords to LineString; returns null if self-intersecting.
+     * @param geo - [[lng,lat], ...] またはLineString系GeoJSON / line coords
+     * @param digit - 小数桁 / rounding digits
      * @returns LineStringまたはnull / LineString or null
-     * @example toLineStringGeoJson([[139.7,35.6],[139.8,35.65],[139.75,35.7]])
+     * @example toLineStringGeoJson([[139.70,35.68],[139.75,35.70],[139.80,35.72]])
      * @category Geo Utilities
      */
     const toLineStringGeoJson = (geo, digit) => {
@@ -225,12 +225,12 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-     * MultiPoint GeoJSONへ変換します。
-     * Converts to MultiPoint GeoJSON.
-     * @param geo - 複数点 / points array
-     * @param digit - 小数桁数 / rounding digits
+     * 複数点をMultiPoint GeoJSONに変換します。
+     * Converts multiple points to MultiPoint GeoJSON.
+     * @param geo - [[lng,lat], ...] またはMultiPoint系GeoJSON / points
+     * @param digit - 小数桁 / rounding digits
      * @returns MultiPointまたはnull / MultiPoint or null
-     * @example toMultiPointGeoJson([[139.7,35.6],[139.8,35.7]])
+     * @example toMultiPointGeoJson([[139.70,35.68],[139.71,35.69],[139.72,35.70]])
      * @category Geo Utilities
      */
     const toMultiPointGeoJson = (geo, digit) => {
@@ -277,12 +277,15 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-     * MultiPolygon GeoJSONへ変換（各ポリゴンは外周のみ使用）。
-     * Converts to MultiPolygon using outer rings.
-     * @param geo - ポリゴン配列 / polygons
-     * @param digit - 小数桁数 / rounding digits
+     * 複数ポリゴンをMultiPolygon GeoJSONに変換（外周リングのみ使用）。
+     * Converts polygons (outer rings) to MultiPolygon GeoJSON.
+     * @param geo - 複数ポリゴン / polygons
+     * @param digit - 小数桁 / rounding digits
      * @returns MultiPolygonまたはnull / MultiPolygon or null
-     * @example toMultiPolygonGeoJson([[[[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]]]])
+     * @example toMultiPolygonGeoJson([
+     *   [[[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]]],
+     *   [[[139.75,35.65],[139.85,35.65],[139.85,35.75],[139.75,35.75],[139.75,35.65]]]
+     * ])
      * @category Geo Utilities
      */
     const toMultiPolygonGeoJson = (geo, digit) => {
@@ -328,12 +331,15 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-     * MultiLineString GeoJSONへ変換（自己交差チェックあり）。
-     * Converts to MultiLineString; rejects self-intersections.
-     * @param geo - 複数線分 / lines array
-     * @param digit - 小数桁数 / rounding digits
+     * 複数LineStringをMultiLineString GeoJSONに変換（自己交差を検出）。
+     * Converts lines to MultiLineString, rejecting self-intersections.
+     * @param geo - 複数線分 / lines
+     * @param digit - 小数桁 / rounding digits
      * @returns MultiLineStringまたはnull / MultiLineString or null
-     * @example toMultiLineStringGeoJson([ [[139.7,35.6],[139.8,35.7]], [[139.6,35.5],[139.65,35.55]] ])
+     * @example toMultiLineStringGeoJson([
+     *   [[139.7,35.6],[139.8,35.65]],
+     *   [[139.75,35.62],[139.85,35.68]]
+     * ])
      * @category Geo Utilities
      */
     const toMultiLineStringGeoJson = (geo, digit) => {
@@ -386,11 +392,11 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-     * 複数Polygon/MultiPolygonをユニオンし1つのPolygon/MultiPolygonにまとめます。
-     * Unions polygons into one geometry.
-     * @param geo - Polygon/MultiPolygon/FeatureCollectionなど / polygons
-     * @param digit - 小数桁数 / rounding digits
-     * @returns 結合後のGeometryまたはnull / Unified geometry or null
+     * Polygon/MultiPolygonをユニオンし1つのGeometryにまとめます。
+     * Unions polygons into a single Polygon/MultiPolygon.
+     * @param geo - Polygon/MultiPolygon/FeatureCollectionなど / polygons input
+     * @param digit - 小数桁 / rounding digits
+     * @returns 結合Geometryまたはnull / Unified geometry or null
      * @example unionPolygon([
      *   [[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]],
      *   [[139.75,35.65],[139.85,35.65],[139.85,35.75],[139.75,35.75],[139.75,35.65]]
@@ -400,7 +406,6 @@ const ansukoGeoPlugin = (ansuko) => {
     const unionPolygon = (geo, digit) => {
         let list = null;
         const g = geo;
-        console.log("[Union]", "Array depth", _.arrayDepth(geo));
         if (_.arrayDepth(geo) === 4) {
             geo = _.first(geo);
         }
@@ -448,25 +453,31 @@ const ansukoGeoPlugin = (ansuko) => {
             return null;
         }
         if (_.size(list) === 1) {
-            console.log("[Single response]", JSON.stringify(list));
             return _.first(list).geometry;
         }
         return turf.union(turf.featureCollection(list))?.geometry ?? null;
     };
     /**
-     * 任意入力を指定タイプのGeoJSONに変換（autoは多次元優先で判定）。
-     * Converts arbitrary input to GeoJSON of specified type (auto tries higher dims first).
-     * @param geo - 入力 / input
-     * @param type - GeomType
-     * @param digit - 小数桁数 / rounding digits
+     * 任意入力を指定タイプのGeoJSON Geometryへ変換（autoは次元の高い順に試行）。
+     * Converts input to GeoJSON geometry of given type (auto tries higher dimensions first).
+     * @param geo - 入力 / Input
+     * @param type - 変換タイプ / GeomType
+     * @param digit - 小数桁 / rounding digits
      * @returns Geometryまたはnull / Geometry or null
      * @example toGeoJson([139.7,35.6], GeomType.point)
      * @example toGeoJson([[139.7,35.6],[139.8,35.7]], GeomType.lineString)
+     * @example toGeoJson(
+     *   [[[139.7,35.6],[139.8,35.6],[139.8,35.7],[139.7,35.7],[139.7,35.6]]],
+     *   GeomType.polygon
+     * )
      * @category Geo Utilities
      */
     const toGeoJson = (geo, type = GeomType.auto, digit) => {
         if (_.isEmpty(geo)) {
             return null;
+        }
+        if (typeof geo === "string") {
+            geo = _.parseJSON(geo);
         }
         switch (type) {
             case GeomType.point:

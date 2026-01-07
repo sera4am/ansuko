@@ -1,5 +1,7 @@
 # ansuko
 
+[![CI](https://img.shields.io/github/actions/workflow/status/sera4am/ansuko/ci.yml?branch=main)](https://github.com/sera4am/ansuko/actions/workflows/ci.yml)
+
 lodashを拡張した、実用的で直感的な動作を提供するモダンなJavaScript/TypeScriptユーティリティライブラリ。
 
 [English](./README.md) | [日本語](./README.ja.md)
@@ -261,8 +263,8 @@ extended.toPointGeoJson([139.7, 35.6])
 
 詳細情報については、以下を参照してください：
 
-- **[APIリファレンス](./API.md)** - 例付きの完全なAPIドキュメント
-- **[使用ガイド](./Guide.md)** - 実際の使用例とパターン
+- **[APIリファレンス](./API.ja.md)** - 例付きの完全なAPIドキュメント
+- **[使用ガイド](./Guide.ja.md)** - 実際の使用例とパターン
 
 ## TypeScriptサポート
 

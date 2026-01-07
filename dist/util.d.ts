@@ -17,7 +17,7 @@ export declare const haifun: (text?: string, replacement?: string, expandInterpr
  * @returns Half-width string or null
  * @example toHalfWidth('ＡＢＣ１２３') // 'ABC123'
  * @example toHalfWidth('東京都千代田区１ー２ー３','-') // '東京都千代田区1-2-3'
- * @example toHalfWidth('ＡＢＣ　１２３') // 'ABC 123'
+ * @example toHalfWidth('ＡＢＣ １２３') // 'ABC 123'
  * @category String Utilities
  */
 export declare const toHalfWidth: (value: unknown, withHaifun?: string) => string | null;

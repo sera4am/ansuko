@@ -1,6 +1,6 @@
 import _ from "lodash";
 // Escape special characters inside character classes: ] - \ ^
-const escapeForCharClass = (s) => s.replace(/[\]\-\\\^]/g, '\\$&');
+const escapeForCharClass = (s) => s.replace(/[\]\-\\^]/g, '\\$&');
 /**
  * Normalizes many hyphen/dash/horizontal-line code points into a single character.
  * @param text - Text to normalize
@@ -81,7 +81,7 @@ export const haifun = (text, replacement = "‐", expandInterpretation = false) 
  * @returns Half-width string or null
  * @example toHalfWidth('ＡＢＣ１２３') // 'ABC123'
  * @example toHalfWidth('東京都千代田区１ー２ー３','-') // '東京都千代田区1-2-3'
- * @example toHalfWidth('ＡＢＣ　１２３') // 'ABC 123'
+ * @example toHalfWidth('ＡＢＣ １２３') // 'ABC 123'
  * @category String Utilities
  */
 export const toHalfWidth = (value, withHaifun) => {

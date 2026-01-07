@@ -49,7 +49,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with: 
-        node-version: '20. x'
+        node-version: '20.x'
         registry-url:  'https://registry.npmjs.org'  # この行を追加
 
     - name: Install dependencies
@@ -76,7 +76,7 @@ jobs:
       if: steps.version-check.outputs.version-changed == 'true'
       run: npm publish --provenance --access public
       # NODE_AUTH_TOKEN不要！OIDC認証なので
-      
+
     - name: Create GitHub Release
       if: steps.version-check.outputs.version-changed == 'true'
       uses: softprops/action-gh-release@v1

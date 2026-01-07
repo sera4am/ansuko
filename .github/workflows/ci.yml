@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  # (中略)
-  id-token: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -43,7 +39,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
+    permissions:
+      contents: write
+      id-token: write
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -89,5 +87,4 @@ jobs:
         name: Release v${{ steps.version-check.outputs.current-version }}
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        

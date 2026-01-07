@@ -1,19 +1,44 @@
-# 使い方ガイド
+# 使用ガイド
+
+実際のアプリケーションでansukoを使用するための実用的な例とパターン。
+
+[English](./Guide.md) | [日本語](./Guide.ja.md)
+
+## 目次
+
+- [TypeScriptサポート](#typescriptサポート)
+- [実用例](#実用例)
+  - [APIレスポンス処理](#apiレスポンス処理)
+  - [スマートダイアログクローズ](#スマートダイアログクローズ)
+  - [設定のバリデーション](#設定のバリデーション)
+  - [安全な配列操作](#安全な配列操作)
+  - [テキスト検索と比較](#テキスト検索と比較)
+  - [データベース更新](#データベース更新)
+  - [日本語住所フォーム](#日本語住所フォームの正規化)
+- [共通パターン](#共通パターン)
+- [高度なテクニック](#valueorとequalsの高度なパターン)
+- [lodashからの移行](#lodashからの移行)
+- [パフォーマンスの考慮事項](#パフォーマンスの考慮事項)
+- [React統合](#react統合の注意事項)
+
+## 概要
+
+このガイドは、一般的な開発シナリオにおけるansukoの実用的な使用方法を示します。すべての例は本番環境対応で、実際のアプリケーションで検証されています。
 
 ## TypeScriptサポート
 
-型定義を含む完全なTypeScriptサポート：
+型定義を含む完全なTypeScriptサポート:
 
 ```typescript
-import _ from '@sera/ansuko'
-import { valueOr, isEmpty, toNumber, equalsOr, parseJSON, changes, haifun, type ChangesOptions } from '@sera/ansuko'
+import _ from 'ansuko'
+import { valueOr, isEmpty, toNumber, equalsOr, parseJSON, changes, haifun, type ChangesOptions } from 'ansuko'
 
-// 型推論が完璧に動作
+// 型推論が完璧に機能
 const result1: string = _.valueOr(null, 'default')
 const result2: number = _.toNumber('1,234') ?? 0
 const result3: boolean = _.isEmpty([])
 
-// ジェネリクスサポート
+// ジェネリックサポート
 interface User { name: string; age: number }
 const user = _.parseJSON<User>(jsonString)  // User | null
 
@@ -22,14 +47,14 @@ const opts: ChangesOptions = { keyExcludes: true }
 const diff = _.changes(obj1, obj2, keys, opts)
 ```
 
-## 実践例
+## 実用例
 
-### APIレスポンスの処理
+### APIレスポンス処理
 
-try-catchやnullチェックなしで安全にAPIレスポンスを処理：
+try-catchやnullチェックなしでAPIレスポンスを安全に処理:
 
 ```javascript
-// 従来の書き方
+// Before
 let status
 try {
   const response = await fetch('/api/status')
@@ -39,23 +64,23 @@ try {
   status = 'error'
 }
 
-// ansukoを使った書き方
+// After
 const data = await _.valueOr(fetch('/api/status').then(r => r.json()), {})
 const status = _.equalsOr(data.status, 'success', 'unknown')
 ```
 
-### スマートなダイアログクローズ
+### スマートダイアログクローズ
 
-「未保存の変更」ダイアログをPromiseの自動処理でエレガントに：
+自動Promise処理で「未保存の変更」ダイアログをエレガントに処理:
 
 ```javascript
-// 従来の書き方 - 冗長でエラーが起きやすい
+// 従来の方法 - 冗長でエラーが起きやすい
 const handleClose = async () => {
   if (_.isEqual(original, edited)) {
     // 変更なし、即座にクローズ
     closeDialog()
   } else {
-    // 変更あり、確認ダイアログを表示
+    // 変更あり、確認表示
     const confirmed = await showConfirmDialog()
     if (confirmed) {
       closeDialog()
@@ -63,66 +88,65 @@ const handleClose = async () => {
   }
 }
 
-// ansukoの書き方 - シンプルで直感的
+// ansukoの方法 - クリーンで直感的
 const handleClose = () => {
-  // equalsOrが同期・非同期を自動で処理
-  // 等しい場合: 即座にoriginalを返して(同期)クローズ
-  // 異なる場合: showConfirmDialogを呼び出し(非同期)、結果を待ってクローズ
+  // equalsOrは同期・非同期の両ケースを自動処理
+  // 等しい場合: 即座にoriginalを返し（同期）、クローズ
+  // 異なる場合: showConfirmDialogを呼び出し（非同期）、結果を待ってクローズ
   _.equalsOr(original, edited, showConfirmDialog).then(closeDialog)
 }
 
-// さらに簡潔に
+// インラインアロー関数でさらに簡潔に
 const handleClose = () => 
   _.equalsOr(original, edited, showConfirmDialog).then(closeDialog)
 ```
 
-### 設定の検証
+### 設定のバリデーション
 
-設定の処理をシンプルに：
+設定処理を簡素化:
 
 ```javascript
-// 従来の書き方
-const config = await loadConfig()
+// Before
 const timeout = config.timeout !== null && 
                 config.timeout !== undefined && 
                 config.timeout !== '' ? 
                 config.timeout : 5000
 
-// ansukoの書き方
-const timeout = _.valueOr(loadConfig(), {timeout: 5000)).timeout
+// After
+const timeout = _.valueOr(config.timeout, 5000)
 ```
 
 ### 安全な配列操作
 
-null/undefinedの処理をスッキリと：
+コレクション内のnull/undefined処理をクリーンアップ:
 
 ```javascript
-// 従来の書き方
+// Before
 const items = data.items
 const processed = (items ? (Array.isArray(items) ? items : [items]) : [])
   .filter(Boolean)
   .map(process)
 
-// ansukoの書き方
+// After
 const processed = _.castArray(data.items)?.map(process) ?? []
 ```
 
-### ハイフン問題の解決
+### テキスト検索と比較
 
-もう住所を全角で入力させられた挙げ句、未知のハイフンで悩ませないためのアレ
+信頼性の高いテキストマッチングのためにダッシュ/ハイフンを正規化:
 
 ```javascript
-// 問題：ユーザーが「東京-大阪」で検索するが、DBには「東京―大阪」(別のハイフン)
+// 問題: ユーザーが"東京-大阪"で検索するが、データベースには"東京―大阪"（異なるダッシュ）
 const userQuery = "東京-大阪"
 const dbRecord = "東京―大阪"
-userQuery === dbRecord  // => false (マッチしない！)
+userQuery === dbRecord  // => false（マッチしない！）
 
-// 解決策：比較前に正規化
+// 解決策: 比較前に正規化
 const normalizedQuery = _.haifun(userQuery)
 const normalizedRecord = _.haifun(dbRecord)
-normalizedQuery === normalizedRecord  // => true (マッチ！)
+normalizedQuery === normalizedRecord  // => true（マッチ！）
 
-// 正規化を使った検索
+// 正規化付きデータベース検索
 app.get('/search', (req, res) => {
   const query = _.haifun(req.query.q)
   const results = db.products.filter(p => 
@@ -133,18 +157,18 @@ app.get('/search', (req, res) => {
 })
 ```
 
-### 商品コードの重複検出
+### 商品コードの重複排除
 
-異なるダッシュ文字を使った重複SKU/品番を検出：
+異なるダッシュタイプを持つSKU/品番の重複を検出:
 
 ```javascript
 const products = [
-  { sku: 'ABC-123-XYZ', name: 'ウィジェット A' },
-  { sku: 'ABC—123—XYZ', name: 'ウィジェット B' },  // emダッシュ
-  { sku: 'DEF-456', name: 'ガジェット' },
+  { sku: 'ABC-123-XYZ', name: 'Widget A' },
+  { sku: 'ABC—123—XYZ', name: 'Widget B' },  // emダッシュ
+  { sku: 'DEF-456', name: 'Gadget' },
 ]
 
-// 正規化したSKUで重複を検出
+// 正規化されたSKUで重複を検出
 const normalized = products.map(p => ({
   ...p,
   normalizedSku: _.haifun(p.sku)
@@ -153,12 +177,12 @@ const normalized = products.map(p => ({
 const duplicates = _.groupBy(normalized, 'normalizedSku')
 const hasDuplicates = Object.values(duplicates).some(group => group.length > 1)
 
-// 結果：ABC-123-XYZとABC—123—XYZが重複として検出される
+// 結果: ABC-123-XYZとABC—123—XYZが重複として検出される
 ```
 
 ### 住所のマッチング
 
-一貫性のないダッシュ形式の住所を比較：
+一貫性のないダッシュ形式の住所を比較:
 
 ```javascript
 const addresses = [
@@ -167,11 +191,11 @@ const addresses = [
   '123–4567 Tokyo',      // enダッシュ
 ]
 
-// 正規化して比較
+// 比較用に正規化
 const normalized = addresses.map(addr => _.haifun(addr))
-// 全て '123‐4567 Tokyo' になる
+// すべて: '123‐4567 Tokyo'になる
 
-// 重複を削除
+// 住所の重複排除
 const unique = _.uniqBy(
   addresses.map(addr => ({ original: addr, normalized: _.haifun(addr) })),
   'normalized'
@@ -180,10 +204,10 @@ const unique = _.uniqBy(
 
 ### CSV/Excelデータのクリーニング
 
-一貫性のない記号を含むインポートデータをクリーンアップ：
+一貫性のない句読点を持つインポートデータをクリーンアップ:
 
 ```javascript
-// 混在したダッシュ文字を含むCSVインポート
+// 混在したダッシュタイプのCSVインポート
 const csvData = [
   { productCode: 'A-001', price: '1,000' },
   { productCode: 'A—002', price: '2,000' },  // Excelからのemダッシュ
@@ -196,22 +220,21 @@ const cleanData = csvData.map(row => ({
   price: _.toNumber(row.price)
 }))
 
-// 全ての商品コードが統一されたダッシュを使用
+// これですべての商品コードが一貫したダッシュを使用
 ```
 
-### ディープパスを使ったデータベース更新用diff
+### 深いパスを持つデータベース更新
 
-DBに格納するデータを保持しているが、投入したくないデータも含んでおり、
-単なるobject比較だけでは除去が手間。というための関数
+変更されたフィールドのみを追跡・適用し、ネストされたプロパティをサポート:
 
 ```javascript
-// DBから元データを取得
+// DBから元のデータを取得
 const original = await db.users.findById(userId)
 
-// UIでユーザーがデータを編集
+// ユーザーがUIでデータを編集
 const edited = userFormData
 
-// 変更されたフィールドのみ取得（ディープパス対応）
+// 変更されたフィールドのみを取得（深いパス対応）
 const updates = _.changes(original, edited, [
   'name',
   'email',
@@ -223,23 +246,23 @@ const updates = _.changes(original, edited, [
 
 // 結果はネストされた構造
 // {
-//   profile: { bio: '新しい自己紹介' },
+//   profile: { bio: 'new bio' },
 //   settings: { theme: 'dark' }
 // }
 
-// lodashのsetを使ってオブジェクトに適用
+// lodash setを使用してオブジェクトに適用
 const updated = _.cloneDeep(original)
 Object.entries(updates).forEach(([path, value]) => {
   _.set(updated, path, value)
 })
 
-// MongoDB用（ドット記法をネイティブサポート）
+// またはMongoDB用（ドット記法をネイティブサポート）
 await db.users.updateOne(
   { _id: userId },
-  { $set: updates }  // MongoDBは自動でネストされたパスを処理
+  { $set: updates }  // MongoDBはネストされたパスを自動処理
 )
 
-// SQLデータベース用、トップレベルオブジェクトを更新
+// SQLデータベース用に、トップレベルオブジェクトを更新
 await db.query(`
   UPDATE users 
   SET profile = $1, settings = $2 
@@ -247,37 +270,37 @@ await db.query(`
 `, [updates.profile, updates.settings, userId])
 ```
 
-**主な機能：**
-- **ディープパスサポート**：`'profile.bio'` でネストされた変更を追跡
-- **ネストされた結果**：適用しやすい構造化オブジェクトを返す
-- **データベースフレンドリー**：MongoDBのドット記法やSQL JSONカラムで動作
+**主な機能:**
+- **深いパスサポート**: ネストされた変更を追跡するために `'profile.bio'` を使用
+- **ネストされた結果**: 簡単に適用できるように構造化されたオブジェクトを返す
+- **データベースフレンドリー**: MongoDBのドット記法やSQL JSONカラムに対応
 
-### センシティブなフィールドの除外
+### 機密フィールドの除外
 
-差分追跡から特定のフィールドを除外（トップレベルキーのみ）：
+差分追跡から特定のフィールドを除外（トップレベルキーのみ）:
 
 ```javascript
-// passwordとAPIキーを除いた全変更を取得
+// パスワードとAPIキーを除くすべての変更を取得
 const safeChanges = _.changes(original, updated, ['password', 'apiKey', 'secret'], { 
   keyExcludes: true 
 })
 
-// センシティブでないトップレベルフィールドのみが結果に含まれる
-// 注意：keyExcludesモードはトップレベルキーのみで、ディープパスには非対応
+// 機密性のないトップレベルフィールドのみが結果に含まれる
+// 注意: keyExcludesモードはトップレベルキーでのみ機能し、深いパスには対応していません
 
-// ネストされた除外には、代わりに特定のパスを使用：
+// ネストされた除外には、代わりに特定のパスを使用:
 const updates = _.changes(original, updated, [
   'name',
   'email',
   'profile.bio',
   'profile.avatar'
-  // profile.privateNotesを除外して、欲しいものを明示的にリスト
+  // profile.privateNotesを除外するために、必要なものを明示的にリスト
 ])
 ```
 
-### デフォルト値付きフォーム検証
+### デフォルト付きフォームバリデーション
 
-直感的なデフォルト値でフォームデータを検証：
+直感的なデフォルトでフォームデータをバリデート:
 
 ```javascript
 const formData = {
@@ -290,102 +313,83 @@ const formData = {
 
 ### 安全なJSON設定
 
-エラーなしでJSONを読み込み・保存：
+エラーなしでJSONを読み込み・保存:
 
 ```javascript
 // 安全な読み込み
 const config = _.parseJSON(fs.readFileSync('config.json', 'utf8')) ?? defaultConfig
 
-// 保存用に安全にstringify
+// 保存用の安全な文字列化
 const saved = _.jsonStringify(userPreferences)
 if (saved) {
   fs.writeFileSync('prefs.json', saved)
 }
 ```
 
-### 日本の住所フォーム正規化
+### 日本語住所フォームの正規化
 
-日本の住所フォームで全角入力を求められるレガシー要件に対抗：
+日本の住所フォームでの全角入力という古い要件に対抗:
 
 ```javascript
-// 問題：多くの日本のフォームが未だに全角入力を要求
-// ユーザーは自然に入力：「ｱｲﾁｹﾝ ABC-1-23」
-// フォームが拒否：「全角で入力してください」
+// 問題: 多くの日本のフォームは今でも全角入力を要求
+// ユーザーは自然に入力: "ｱｲﾁｹﾝ ABC-1-23"
+// フォームが拒否: "全角で入力してください"
 
-// 解決策：どんな入力も受け付けて、JS側で正規化
-const userInput = formField.value  // "東京都千代田区ｺｳｴﾝ町1-23"
-const normalized = _.toFullWidth(userInput, 'ー')
-// 結果：「東京都千代田区コウエン町１ー２ー３」
-
-// 実際のフォームハンドラ
-function handleAddressSubmit(e) {
-  e.preventDefault()
-  const address = _.toFullWidth(e.target.address.value, 'ー')
-  const postalCode = _.toFullWidth(e.target.postalCode.value, 'ー')
+// 解決策: どんな入力も受け付け、クライアント側で正規化
+const handleAddressInput = (userInput) => {
+  // ステップ1: すべてを全角に正規化
+  const normalized = _.toFullWidth(userInput)
   
-  const errors = await _.valueOr(getValidateErrors(address, postalCode), () => api.submitAddress({address, postalCode}))
-  if (errors) {
-    // その他のバリデーションエラー処理
-  }
+  // ステップ2: データベースに保存または送信
+  return normalized
 }
 
-// バリデーションエラーなし、ユーザーのストレスなし
+// 例:
+handleAddressInput('ｱｲﾁｹﾝ ABC-1-23')
+// => 'アイチケン　ＡＢＣ－１－２３'
+
+// より良いユーザー体験のために:
+<input 
+  onChange={(e) => {
+    const normalized = _.toFullWidth(e.target.value)
+    setAddress(normalized)
+    // フォームはリアルタイムで正規化を表示
+    // ユーザーは入力方法を気にする必要なし
+  }}
+/>
 ```
 
-**なぜこれが重要か：**
-- ユーザーは自然に入力できる（コピペも動く！）
-- イライラするバリデーションエラーがない
-- システムが自動で正規化
-- どんな入力でも対応：半角、全角、混在
+### カナ入力の正規化
 
-**全角から半角へ（モダンシステム向け）：**
+様々なカナ入力形式を処理:
 
 ```javascript
-// モダンなAPIは互換性のため半角を好む
-const legacyInput = 'ｈｏｇｅ＠ｆｏｏ.ｃｏｍ'  // 古いデータベースから
-const modernFormat = _.toHalfWidth(legacyInput, '-')
-// 結果：'hoge@foo.com'
-
-// インポートデータをクリーンアップ
-const modernized = legacyAddresses.map(addr => ({
-  ...addr,
-  address: _.toHalfWidth(addr.address, '-'),
-  building: _.toHalfWidth(addr.building, '-')
-}))
-```
-
-### 日本語テキストの正規化
-
-様々な日本語テキストエンコーディングを処理：
-
-```javascript
-// 異なるソースからのユーザー入力
-const input1 = 'ｱｲｳｴｵ'  // 半角カタカナ
+const input1 = 'ｱｲｳｴｵ'  // 半角カナ
 const input2 = 'あいうえお'  // ひらがな
-const input3 = 'アイウエオ'  // カタカナ
+const input3 = 'アイウエオ'  // 全角カナ
 
-// 全角カタカナに正規化
+// 全角カナに正規化
 const normalized = [
   _.kanaToFull(input1),
   _.hiraToKana(input2),
   input3
 ]
 
-// 全て「アイウエオ」に
+// すべて: 'アイウエオ'
 
 // 半角に変換（レガシーシステム互換性）
 _.kanaToHalf('アイウエオ')  // => 'ｱｲｳｴｵ'
-_.kanaToHalf('ガギグゲゴ')  // => 'ｶﾞｷﾞｸﾞｹﾞｺﾞ' (結合文字付き)
+_.kanaToHalf('ガギグゲゴ')  // => 'ｶﾞｷﾞｸﾞｹﾞｺﾞ'（結合記号付き）
 ```
 
-## よくあるパターン
+## 共通パターン
 
 ### 操作のチェーン
 
-ansukoユーティリティを組み合わせて強力な変換：
+強力な変換のためにansukoユーティリティを組み合わせ:
 
 ```javascript
-// JSON解析、数値フィールド抽出、デフォルト値提供
+// JSONをパースし、数値フィールドを抽出し、デフォルトを提供
 const timeout = _.toNumber(
   _.valueOr(
     _.parseJSON(configStr)?.timeout,
@@ -393,7 +397,7 @@ const timeout = _.toNumber(
   )
 ) ?? 30000
 
-// lodashとのチェーン
+// またはlodashとチェーン
 const validUsers = _.chain(users)
   .map(user => ({
     ...user,
@@ -403,9 +407,9 @@ const validUsers = _.chain(users)
   .value()
 ```
 
-### null可能な入力の検証
+### nullable入力のバリデーション
 
-null可能性がある値の安全な処理：
+潜在的にnullの値の安全な処理:
 
 ```javascript
 async function processUser(user) {
@@ -419,12 +423,12 @@ async function processUser(user) {
 }
 ```
 
-### 遅延評価
+### 遅延計算
 
-不要な場合は高コスト操作を回避：
+不要な場合は高価な操作を回避:
 
 ```javascript
-// config.valueがnilの場合のみexpensiveCalculation()が実行される
+// expensiveCalculation()はconfig.valueがnilの場合のみ実行
 const result = _.valueOr(
   config.value,
   () => expensiveCalculation()
@@ -433,162 +437,177 @@ const result = _.valueOr(
 // Promise評価 - 自動処理
 const data = await _.valueOr(
   cache.get('key'),
-  () => fetchFromAPI()  // キャッシュミス時のみ呼ばれる
+  () => fetchFromAPI()  // キャッシュミスの場合のみ呼ばれる
 )
 ```
 
 ### 条件付き更新
 
-更新オブジェクトを動的に構築：
+更新オブジェクトを動的に構築:
 
 ```javascript
-const original = {
-    id: 123, // 更新対象外
-    createdAt: 1766230000, // 更新対象外
-    uid: "data_1", // これが固有ID
-    name: "test_a",
-    message: "hello",
-}
-const edited = {
-    id: 123, // 更新対象外
-    createdAt: 1766230000, // 更新対象外
-    updatedAt: 1766466000,
-    // name: "data_1",
-    message: "world",
-    clickAt: 1766000000, // 更新対象外
-    mode: "cache", // 更新対象外
+const updates = {}
+
+if (hasChanges) {
+  Object.assign(updates, _.changes(original, edited, changedKeys))
 }
 
-const updates = _.changes(original, edited, [
-    "uid", "updatedAt", "name", "message"
-])
-
-console.log(updates)
-/*
-  出力: {name: null, message: "world"}
-*/
-
-// もし、除外したいがわかっててそちらの列挙の方が楽なら
-const updates = _.changes(original, edited, [
-    "id", "createdAt", "clickAt", "mode"
-], {excludeKeys: true})
-/*
-  出力: 上記と同じ
-*/
-
-```
-
-### PromiseとSync処理
-
-`valueOr`と`equalsOr`は自動的に関数及びPromiseを検出：
-
-```javascript
-// 同期 - 即座に返る
-const result1 = _.valueOr('value', 'default')  // 'value'
-const result2 = _.equalsOr('a', 'a', 'default')  // 'a'
-
-// 非同期 - Promiseを返す
-const result3 = await _.valueOr(asyncGetValue, asyncDefaultValue)
-
-// 混在 - Promiseを返す
-const result4 = await _.equalsOr(asyncCheck, 'expected', 'default')
-
-```
-
-### valueOrとequalsOrの高度なパターン
-
-遅延評価と自動Promise処理によるスマートなフォールバックチェーン：
-
-```javascript
-// キャッシュヒット → API取得（まずキャッシュ、ミスならfetch）
-const data = await _.valueOr(cache.get(key), () => api.fetch(key))
-
-// ローカル設定 → リモート設定（ローカル優先、フォールバックでAPI結果を非同期取得）
-const config = await _.valueOr(localStorage.get('config'), () => api.getConfig())
-
-// 変更チェック → 確認と保存実行（非同期） → クローズ（変更なしなら確認と保存をスキップ）
-_.equalsOr(original, edited, () => confirmAndSave()).then(doClose)
-// または
-const uid = original.uid // uid = データ固有ID、id = テーブルのシーケンシャル番号
-const diff = _.changes(original edited, ["id", "created_at", "updated_at"], {excludeKeys: true}) // id、created_at、updated_atを除く変更データを取得
-_.valueOr(!diff, () => confirmAndSave({...diff, uid})).then(onClose)
-
-// 明晰な人向け：権限ゲート実行（拒否ならtrue、実行されたら結果を返す）
-const resultOrNotAccepted = await _.valueOr(!checkPermission(), () => executeAction())
-if (resultOrNotAccepted === true) {
-  // 権限拒否、アクション未実行
-} else {
-  // アクション実行済み、結果を処理
-  handleResult(resultOrNotAccepted)
+if (Object.keys(updates).length > 0) {
+  await db.update(record, updates)
 }
 ```
 
-**主な利点：**
-- **簡潔**：複雑なロジックを1つの式で
-- **遅延評価**：フォールバック関数は必要な時だけ実行
-- **Promise対応**：同期と非同期をシームレスに処理
-- **型安全**：戻り値の型が明確
+## プラグインの使用パターン
 
-## lodashからの移行
+### 複数プラグインの読み込み
 
-### isEmpty
+```typescript
+import _ from 'ansuko'
+import jaPlugin from 'ansuko/plugins/ja'
+import geoPlugin from 'ansuko/plugins/geo'
+import prototypePlugin from 'ansuko/plugins/prototype'
 
-```javascript
-// lodash
-if (_.isEmpty(0)) { /* 実行されるが、0は空なのか？ */ }
+// 完全な機能のためにプラグインをチェーン
+const extended = _
+  .extend(jaPlugin)
+  .extend(geoPlugin)
+  .extend(prototypePlugin)
 
-// ansuko
-if (_.isEmpty(0)) { /* 実行されない - 正しい！ */ }
-  /* 元の動作が必要なら */
-if(_.isEmptyOrg(0)) { /* 実行される */}
+// すべてが使える
+extended.kanaToHira('アイウ')                    // 日本語
+extended.toPointGeoJson([139.7, 35.6])         // Geo
+[1,2,3].notFilter(n => n % 2)                   // Prototype
+extended.valueOr(null, 'default')               // コア
 ```
 
-### castArray
+### 条件付きプラグイン読み込み
 
-```javascript
-// lodash
-_.castArray(null)  // => [null] いやいや！
+バンドルサイズを最適化するために、必要な場合のみプラグインを読み込み:
 
-// ansuko
-_.castArray(null)  // => [] 納得！
-  /* 元の動作が必要なら */
-_.castArrayOrg(null) // => [null]
-```
+```typescript
+// コアアプリ - 最小バンドル
+import _ from 'ansuko'
 
-### もうlet+try-catchは不要
-
-```javascript
-// lodashの方法
-let data
-try {
-  data = JSON.parse(str)
-} catch (e) {
-  data = null
+// 日本語入力フォーム - jaプラグインを追加
+if (needsJapaneseInput) {
+  const jaPlugin = await import('ansuko/plugins/ja')
+  _.extend(jaPlugin.default)
 }
-if(!data) { /** エラー処理 **/ }
 
-// ansukoの方法（問題があればnullを返す、細かいエラー貰ってもユーザに説明できんしそもそもjsonをそのまま使わせないっしょ）
-const data = _.parseJSON(str)
-if (!data) { /** エラー処理 **/ }
+// マップビュー - geoプラグインを追加
+if (showingMap) {
+  const geoPlugin = await import('ansuko/plugins/geo')
+  _.extend(geoPlugin.default)
+}
+```
+
+### カスタムプラグインの作成
+
+```typescript
+// カスタムプラグインを定義
+const myPlugin = (ansuko) => {
+  const customFunction = (value) => {
+    // ansukoユーティリティを使用したロジック
+    return ansuko.isEmpty(value) ? 'empty' : value
+  }
+  
+  // ansukoを拡張
+  ansuko.customFunction = customFunction
+  
+  return ansuko
+}
+
+// プラグインを使用
+const extended = _.extend(myPlugin)
+extended.customFunction(null)  // 'empty'
+```
+
+## GeoJSONワークフロー
+
+### ユーザー入力のGeoJSONへの変換
+
+```typescript
+import _ from 'ansuko'
+import geoPlugin from 'ansuko/plugins/geo'
+
+const extended = _.extend(geoPlugin)
+
+// ユーザーが様々な形式で入力
+const userInputs = [
+  [139.7671, 35.6812],                    // 配列
+  { lat: 35.6895, lng: 139.6917 },        // オブジェクト
+  '{"type":"Point","coordinates":[...]}', // JSON文字列
+]
+
+// すべてをGeoJSON Pointに変換
+const points = userInputs
+  .map(input => extended.toPointGeoJson(input))
+  .filter(Boolean)  // nullを削除
+```
+
+### GeoJSONフィーチャーの構築
+
+```typescript
+// データベースレコードからフィーチャーコレクションを作成
+const trees = await db.trees.find({ city: 'Tokyo' })
+
+const features = trees
+  .map(tree => {
+    const point = extended.toPointGeoJson([tree.lng, tree.lat])
+    if (!point) return null
+    
+    return {
+      type: 'Feature',
+      geometry: point,
+      properties: {
+        id: tree.id,
+        species: tree.species,
+        height: tree.height
+      }
+    }
+  })
+  .filter(Boolean)
+
+const featureCollection = {
+  type: 'FeatureCollection',
+  features
+}
+```
+
+### ポリゴン操作
+
+```typescript
+// 重複する管理区域を結合
+const zone1 = await db.getZonePolygon('zone-1')
+const zone2 = await db.getZonePolygon('zone-2')
+const zone3 = await db.getZonePolygon('zone-3')
+
+const mergedZone = extended.unionPolygon([zone1, zone2, zone3])
+
+// 結合された境界を保存
+await db.boundaries.insert({
+  name: 'merged-zone',
+  geometry: mergedZone
+})
 ```
 
 ## パフォーマンスの考慮事項
 
-### 大きなオブジェクトでの`changes`
+### 大きなオブジェクトでの `changes`
 
-大きなオブジェクトには、キーを具体的に指定：
+大きなオブジェクトの場合、キーを具体的に指定:
 
 ```javascript
-// 良い：特定のキー
+// 良い: 具体的なキー
 const changes = _.changes(large, updated, ['field1', 'field2'])
 
-// 高コスト：全キーをスキャン
+// 高コスト: すべてのキーをスキャン
 const changes = _.changes(large, updated, Object.keys(large), { keyExcludes: false })
 ```
 
-### JSON解析
+### JSONパース
 
-頻繁に解析するJSONは、結果をキャッシュ：
+頻繁にパースされるJSONの場合、結果をキャッシュ:
 
 ```javascript
 const data = memoize(() => _.parseJSON(jsonStr))
@@ -596,43 +615,43 @@ const data = memoize(() => _.parseJSON(jsonStr))
 
 ### テキスト正規化
 
-一括操作では、一度正規化してキャッシュすることを検討：
+一括操作の場合、一度だけ正規化してキャッシュすることを検討:
 
 ```javascript
-// データベースレコードを一度正規化
+// データベースレコードを一度だけ正規化
 const normalizedProducts = products.map(p => ({
   ...p,
   searchableName: _.haifun(p.name),
   searchableSku: _.haifun(p.sku)
 }))
 
-// その後、正規化済みフィールドで検索
+// 事前に正規化されたフィールドで検索
 const results = normalizedProducts.filter(p =>
   p.searchableName.includes(_.haifun(query))
 )
 ```
 
-### Reactの状態更新を待つ
+### React状態更新の待機
 
-状態変更がレンダリングされることを保証するため、`setTimeout`の代わりに`waited`を使用。フレームベースのタイミングは、デバイスパフォーマンスに関係なく実際のレンダリングサイクルに適応し、早すぎる実行と不要な待機の両方を排除します。
+状態変更がレンダリングされることを保証するために、`setTimeout` の代わりに `waited` を使用します。フレームベースのタイミングはデバイスのパフォーマンスに関係なく実際のレンダリングサイクルに適応し、早すぎる実行と不要な遅延の両方を排除します。
 
 ```javascript
-// ❌ 従来：信頼性のないタイミング、マシン速度に依存
+// ❌ Before: 信頼性の低いタイミング、マシン速度に依存
 function handleUpdate() {
   setData(newData)
   setTimeout(() => {
-    // 遅いデバイスではレンダリング完了前に実行される可能性
-    // 速いデバイスでは不必要に長く待つ可能性
+    // 低速デバイスではレンダリング完了前に実行される可能性
+    // 高速デバイスでは不必要に長く待つ可能性
     scrollToElement()
-  }, 100)  // 適当な数値！
+  }, 100)  // 任意の数字！
 }
 
-// ✅ 改善後：実際のレンダリングを待ち、デバイスに適応
+// ✅ After: 実際のレンダリングを待ち、デバイスに適応
 function handleUpdate() {
   setData(newData)
   _.waited(() => {
-    scrollToElement()  // レンダリング後の実行が保証される
-  }, 1)  // 2フレーム待機（1 RAF + もう1回）
+    scrollToElement()  // レンダリング後に実行が保証される
+  }, 1)  // 2フレーム待機（1 RAF + もう1つ）
 }
 
 // 複数の状態更新
@@ -642,7 +661,7 @@ function handleComplexUpdate() {
     setStep2(data2)
     _.waited(() => {
       triggerAnimation()
-    }, 2)  // 重いレンダリング用に3フレーム待機
+    }, 2)  // 重いレンダリングのために2フレーム待機
   }, 1)
 }
 
@@ -655,7 +674,7 @@ function measureElement() {
   }, 1)
 }
 
-// 連鎖アニメーション
+// チェーンされたアニメーション
 function sequentialAnimations() {
   playAnimation1()
   _.waited(() => {
@@ -667,21 +686,118 @@ function sequentialAnimations() {
 }
 ```
 
-**`waited`が`setTimeout`より優れている理由：**
-- **恣意的な遅延なし**：ミリ秒ではなくフレーム数
-- **デバイス非依存**：速いマシンは無駄に待たず、遅いマシンで壊れない
-- **レンダリング同期**：実際のDOM更新後に実行
-- **競合状態なし**：ペイントサイクル後の実行が保証
+**なぜ `waited` が `setTimeout` より優れているか:**
+- **任意の遅延なし**: フレーム数、ミリ秒ではない
+- **デバイス非依存**: 高速マシンは不必要に待たず、低速マシンは壊れない
+- **レンダリング同期**: 実際のDOM更新後に実行
+- **競合状態なし**: ペイントサイクル後の実行が保証される
 
-## React統合の注意点
+## Promise vs 同期処理
 
-### なぜJSXで直接valueOr/equalsOrを使わない方がいいのか？
+`valueOr` と `equalsOr` はPromiseを自動検出:
+
+```javascript
+// 同期 - 即座に返す
+const result1 = _.valueOr('value', 'default')  // 'value'
+const result2 = _.equalsOr('a', 'a', 'default')  // 'a'
+
+// 非同期 - Promiseを返す
+const result3 = await _.valueOr(asyncGetValue(), 'default')
+const result4 = await _.equalsOr(asyncCheck(), 'expected', 'default')
+
+// 混在 - 自動的にPromiseになる
+const result5 = await _.equalsOr(syncValue, asyncValue, 'default')
+```
+
+## valueOrとequalsOrの高度なパターン
+
+遅延評価と自動Promise処理を持つスマートなフォールバックチェーン:
+
+```javascript
+// バリデーション → 送信（バリデーション失敗時はエラーを返し、成功時はundefined）
+const errors = await _.valueOr(validate(), () => api.submit())
+
+// キャッシュヒット → API取得（まずキャッシュを試し、ミス時に取得）
+const data = await _.valueOr(cache.get(key), () => api.fetch(key))
+
+// ローカル設定 → リモート設定（ローカルを優先、APIにフォールバック）
+const config = await _.valueOr(localStorage.get('config'), () => api.getConfig())
+
+// 変更チェック → 確認と保存実行（非同期） → クローズ（変更なしなら確認と保存をスキップ）
+_.equalsOr(original, edited, () => confirmAndSave()).then(doClose)
+// または
+const uid = original.uid // id = 一意のデータ識別子、id = テーブルの連番
+const diff = _.changes(original, edited, ["id", "created_at", "updated_at"], {excludeKeys: true}) // id、created_at、updated_atを除く変更データを取得
+_.valueOr(!diff, () => confirmAndSave({...diff, uid})).then(onClose)
+
+// 悟りを開いた者向け: 権限ゲート実行（拒否された場合trueを返し、実行された場合結果を返す）
+const resultOrNotAccepted = await _.valueOr(!checkPermission(), () => executeAction())
+if (resultOrNotAccepted === true) {
+  // 権限拒否、アクション未実行
+} else {
+  // アクション実行、結果を処理
+  handleResult(resultOrNotAccepted)
+}
+```
+
+**主な利点:**
+- **簡潔**: 単一の式で複雑なロジック
+- **遅延評価**: フォールバック関数は必要な場合のみ実行
+- **Promise対応**: 同期と非同期をシームレスに処理
+- **型安全**: 返り値の型が明確に定義される
+
+## lodashからの移行
+
+### isEmpty
+
+```javascript
+// lodash
+if (_.isEmpty(0)) { /* 実行されるが、すべきでない */ }
+
+// ansuko
+if (_.isEmpty(0)) { /* 実行されない - 正しい！ */ }
+  /* 必要ならオリジナルを呼び出せる */
+if(_.isEmptyOrg(0)) { /* 実行 */}
+```
+
+### castArray
+
+```javascript
+// lodash
+_.castArray(null)  // => [null]
+
+// ansuko
+_.castArray(null)  // => []
+  /* 必要ならオリジナルを呼び出せる */
+_.castArrayOrg(null) // => [null]
+```
+
+### JSON用のtry-catchが不要
+
+```javascript
+// lodashの方法
+let data
+try {
+  data = JSON.parse(str)
+} catch (e) {
+  data = null
+}
+if(!data) { /** エラー処理 **/ }
+
+// ansukoの方法（問題がある場合nullを返す）
+const data = _.parseJSON(str)
+if (!data) { /** エラー処理 **/ }
+```
+
+## React統合の注意事項
+
+### なぜJSXでvalueOr/equalsOrを直接使用しないのか？
 
 ```tsx
-// ❌ これはダメ - 問題が起きる
+// ❌ これはしないで - 問題が発生
 <InputField value={_.valueOr(user?.name, GetNameAPI)} />
 
-// ✅ useState + useEffectを使う
+// ✅ 代わりにuseState + useEffectを使用
 const [userName, setUserName] = useState('')
 
 useEffect(() => {
@@ -691,4 +807,4 @@ useEffect(() => {
 <InputField value={userName} />
 ```
 
-理由：Reactはpropsで安定した値を期待します。Promiseを直接渡したり、レンダリング中に関数を呼び出すと、再レンダリングループや予期しない動作を引き起こす可能性があります。常に`useEffect`やカスタムフック内で値を解決してください。
+問題点: Reactはpropsで安定した値を期待します。Promiseを直接渡したり、レンダリング中に関数を呼び出すと、再レンダリングループや予期しない動作を引き起こす可能性があります。常に `useEffect` またはカスタムフックで値を解決してください。

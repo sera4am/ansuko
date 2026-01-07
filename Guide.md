@@ -1,12 +1,37 @@
 # Usage Guide
 
+Practical examples and patterns for using ansuko in real-world applications.
+
+[English](./Guide.md) | [日本語](./Guide.ja.md)
+
+## Table of Contents
+
+- [TypeScript Support](#typescript-support)
+- [Real-world Examples](#real-world-examples)
+  - [API Response Handling](#api-response-handling)
+  - [Smart Dialog Closing](#smart-dialog-closing)
+  - [Config Validation](#config-validation)
+  - [Safe Array Operations](#safe-array-operations)
+  - [Text Search and Comparison](#text-search-and-comparison)
+  - [Database Updates](#database-updates)
+  - [Japanese Address Forms](#japanese-address-form-normalization)
+- [Common Patterns](#common-patterns)
+- [Advanced Techniques](#advanced-patterns-with-valueor-and-equalsor)
+- [Migration from lodash](#migration-from-lodash)
+- [Performance Considerations](#performance-considerations)
+- [React Integration](#react-integration-notes)
+
+## Overview
+
+This guide demonstrates practical uses of ansuko for common development scenarios. All examples are production-ready and battle-tested in real applications.
+
 ## TypeScript Support
 
 Full TypeScript support with type definitions included:
 
 ```typescript
-import _ from '@sera/ansuko'
-import { valueOr, isEmpty, toNumber, equalsOr, parseJSON, changes, haifun, type ChangesOptions } from '@sera/ansuko'
+import _ from 'ansuko'
+import { valueOr, isEmpty, toNumber, equalsOr, parseJSON, changes, haifun, type ChangesOptions } from 'ansuko'
 
 // Type inference works perfectly
 const result1: string = _.valueOr(null, 'default')
@@ -452,8 +477,141 @@ if (Object.keys(updates).length > 0) {
 }
 ```
 
+## Plugin Usage Patterns
 
-### Promise vs Sync Handling
+### Loading Multiple Plugins
+
+```typescript
+import _ from 'ansuko'
+import jaPlugin from 'ansuko/plugins/ja'
+import geoPlugin from 'ansuko/plugins/geo'
+import prototypePlugin from 'ansuko/plugins/prototype'
+
+// Chain plugins for full functionality
+const extended = _
+  .extend(jaPlugin)
+  .extend(geoPlugin)
+  .extend(prototypePlugin)
+
+// Now you have everything
+extended.kanaToHira('アイウ')                    // Japanese
+extended.toPointGeoJson([139.7, 35.6])         // Geo
+[1,2,3].notFilter(n => n % 2)                   // Prototype
+extended.valueOr(null, 'default')               // Core
+```
+
+### Conditional Plugin Loading
+
+Only load plugins when needed to optimize bundle size:
+
+```typescript
+// Core app - minimal bundle
+import _ from 'ansuko'
+
+// Japanese input form - add ja plugin
+if (needsJapaneseInput) {
+  const jaPlugin = await import('ansuko/plugins/ja')
+  _.extend(jaPlugin.default)
+}
+
+// Map view - add geo plugin
+if (showingMap) {
+  const geoPlugin = await import('ansuko/plugins/geo')
+  _.extend(geoPlugin.default)
+}
+```
+
+### Creating Custom Plugins
+
+```typescript
+// Define a custom plugin
+const myPlugin = (ansuko) => {
+  const customFunction = (value) => {
+    // Your logic using ansuko utilities
+    return ansuko.isEmpty(value) ? 'empty' : value
+  }
+  
+  // Extend ansuko
+  ansuko.customFunction = customFunction
+  
+  return ansuko
+}
+
+// Use your plugin
+const extended = _.extend(myPlugin)
+extended.customFunction(null)  // 'empty'
+```
+
+## GeoJSON Workflows
+
+### Converting User Input to GeoJSON
+
+```typescript
+import _ from 'ansuko'
+import geoPlugin from 'ansuko/plugins/geo'
+
+const extended = _.extend(geoPlugin)
+
+// User inputs various formats
+const userInputs = [
+  [139.7671, 35.6812],                    // Array
+  { lat: 35.6895, lng: 139.6917 },        // Object
+  '{"type":"Point","coordinates":[...]}', // JSON string
+]
+
+// Convert all to GeoJSON Point
+const points = userInputs
+  .map(input => extended.toPointGeoJson(input))
+  .filter(Boolean)  // Remove nulls
+```
+
+### Building GeoJSON Features
+
+```typescript
+// Create a feature collection from database records
+const trees = await db.trees.find({ city: 'Tokyo' })
+
+const features = trees
+  .map(tree => {
+    const point = extended.toPointGeoJson([tree.lng, tree.lat])
+    if (!point) return null
+    
+    return {
+      type: 'Feature',
+      geometry: point,
+      properties: {
+        id: tree.id,
+        species: tree.species,
+        height: tree.height
+      }
+    }
+  })
+  .filter(Boolean)
+
+const featureCollection = {
+  type: 'FeatureCollection',
+  features
+}
+```
+
+### Polygon Operations
+
+```typescript
+// Merge overlapping administrative zones
+const zone1 = await db.getZonePolygon('zone-1')
+const zone2 = await db.getZonePolygon('zone-2')
+const zone3 = await db.getZonePolygon('zone-3')
+
+const mergedZone = extended.unionPolygon([zone1, zone2, zone3])
+
+// Save merged boundary
+await db.boundaries.insert({
+  name: 'merged-zone',
+  geometry: mergedZone
+})
+```
+
+## Performance Considerations
 
 `valueOr` and `equalsOr` automatically detect Promises:
 

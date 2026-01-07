@@ -1,6 +1,7 @@
 import _ from "lodash"
 
-const escapeForCharClass = (s: string) => s.replace(/[\]\-\\\^]/g, '\\$&')
+// 文字クラス内で特殊な意味を持つ文字をエスケープ: ] - \ ^
+const escapeForCharClass = (s: string) => s.replace(/[\]\-\\^]/g, '\\$&')
 
 /**
  * 多様なハイフン/ダッシュ/横線を1文字に正規化します。
@@ -54,7 +55,7 @@ export const haifun = (text?: string, replacement: string = "‐", expandInterpr
         "\uFFDA", // ￚ (HALFWIDTH HANGUL LETTER EU: 半角ハングル字母)
         "\u10110", // 𐄐 (AEGEAN NUMBER TEN: エーゲ数字の10)
         "\u10191", // 𐆑 (ROMAN UNCIA SIGN: ローマ数字のウンキア記号)
-        "\u1680", //   (OGHAM SPACE MARK: オガム文字の空白記号)
+        "\u1680", // (OGHAM SPACE MARK: オガム文字の空白記号)
     ]
 
     const ex = [
@@ -84,7 +85,6 @@ export const haifun = (text?: string, replacement: string = "‐", expandInterpr
 }
 
 
-
 /**
  * 全角を半角へ変換し、必要に応じてハイフンも統一します。
  * Converts full-width to half-width; optionally normalizes hyphens.
@@ -93,7 +93,7 @@ export const haifun = (text?: string, replacement: string = "‐", expandInterpr
  * @returns 半角文字列またはnull / Half-width string or null
  * @example toHalfWidth('ＡＢＣ１２３') // 'ABC123'
  * @example toHalfWidth('東京都千代田区１ー２ー３','-') // '東京都千代田区1-2-3'
- * @example toHalfWidth('ＡＢＣ　１２３') // 'ABC 123'
+ * @example toHalfWidth('ＡＢＣ[全角スペース]１２３') // 'ABC 123'
  * @category String Utilities
  */
 export const toHalfWidth = (value: unknown, withHaifun?: string): string | null => {

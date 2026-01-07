@@ -1,12 +1,12 @@
 import * as turf from "@turf/turf";
 export var GeomType;
 (function (GeomType) {
-    GeomType["point"] = "point";
-    GeomType["polygon"] = "polygon";
-    GeomType["lineString"] = "linestring";
-    GeomType["multiPoint"] = "multipoint";
-    GeomType["multiPolygon"] = "multipolygon";
-    GeomType["multiLineString"] = "multilinestring";
+    GeomType[GeomType["point"] = 0] = "point";
+    GeomType[GeomType["polygon"] = 1] = "polygon";
+    GeomType[GeomType["lineString"] = 2] = "lineString";
+    GeomType[GeomType["multiPoint"] = 3] = "multiPoint";
+    GeomType[GeomType["multiPolygon"] = 4] = "multiPolygon";
+    GeomType[GeomType["multiLineString"] = 5] = "multiLineString";
     GeomType["auto"] = "auto";
 })(GeomType || (GeomType = {}));
 const ansukoGeoPlugin = (ansuko) => {

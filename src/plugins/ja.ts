@@ -7,7 +7,7 @@ export interface AnsukoJaExtension {
     kanaToHalf: (str: unknown) => string | null
     kanaToHira: (str: unknown) => string | null
     hiraToKana: (str: unknown) => string | null
-    toHalfWidth: (value: unknown, withHaifun?: string) => string | null
+    toHalfWidth: typeof toHalfWidth
     toFullWidth: (value: unknown, withHaifun?: string) => string | null
     haifun: typeof haifun
 }
@@ -121,33 +121,6 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
             // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
             if (code >= 0x0021 && code <= 0x007E) {
                 return String.fromCharCode(code + 0xFEE0)
-            }
-            return char
-        }).join('')
-        return withHaifun ? haifun(str, withHaifun) : str
-    }
-
-    /**
-     * 全角/半角・記号混在の文字列を半角にし、必要ならハイフンも統一します。
-     * Converts to half-width and optionally normalizes hyphens.
-     * @param value - 変換対象 / Value
-     * @param withHaifun - ハイフン置換文字 / Hyphen replacement
-     * @returns 半角文字列またはnull / Half-width string or null
-     * @example _.toHalfWidth('ＡＢＣー１２３','-') // 'ABC-123'
-     * @example _.toHalfWidth(' ｱｲｳ　123 ') // ' ｱｲｳ 123 '
-     * @category Japanese Utilities
-     */
-    const toHalfWidth = (value: unknown, withHaifun?: string): string | null => {
-        if (_.isNil(value)) { return null }
-        const str = String(value).split('').map(char => {
-            const code = char.charCodeAt(0)
-            // スペース
-            if (code === 0x3000) {
-                return '\u0020'  // 半角スペース
-            }
-            // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
-            if (code >= 0xFF01 && code <= 0xFF5E) {
-                return String.fromCharCode(code - 0xFEE0)
             }
             return char
         }).join('')

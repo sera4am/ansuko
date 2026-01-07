@@ -1,15 +1,15 @@
-import _ from "../index"
+
 import * as turf from "@turf/turf"
-import { Geometry, Polygon, Position } from "geojson"
+import GeoJSON, { Geometry } from "geojson"
 import { type AnsukoType } from "../index.js"
 
 export enum GeomType {
-    point = "point",
-    polygon = "polygon",
-    lineString = "linestring",
-    multiPoint = "multipoint",
-    multiPolygon = "multipolygon",
-    multiLineString = "multilinestring",
+    point,
+    polygon,
+    lineString,
+    multiPoint,
+    multiPolygon,
+    multiLineString,
     auto = "auto",
 }
 

@@ -1,11 +1,12 @@
+import GeoJSON from "geojson";
 import { type AnsukoType } from "../index.js";
 export declare enum GeomType {
-    point = "point",
-    polygon = "polygon",
-    lineString = "linestring",
-    multiPoint = "multipoint",
-    multiPolygon = "multipolygon",
-    multiLineString = "multilinestring",
+    point = 0,
+    polygon = 1,
+    lineString = 2,
+    multiPoint = 3,
+    multiPolygon = 4,
+    multiLineString = 5,
     auto = "auto"
 }
 export interface AnsukoGeoPluginExtension {

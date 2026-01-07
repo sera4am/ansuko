@@ -1,11 +1,11 @@
 import { type AnsukoType } from "../index.js";
-import { haifun } from "../util.js";
+import { toHalfWidth, haifun } from "../util.js";
 export interface AnsukoJaExtension {
     kanaToFull: (str: unknown) => string | null;
     kanaToHalf: (str: unknown) => string | null;
     kanaToHira: (str: unknown) => string | null;
     hiraToKana: (str: unknown) => string | null;
-    toHalfWidth: (value: unknown, withHaifun?: string) => string | null;
+    toHalfWidth: typeof toHalfWidth;
     toFullWidth: (value: unknown, withHaifun?: string) => string | null;
     haifun: typeof haifun;
 }

@@ -1,20 +1,18 @@
 import _ from "lodash";
 /**
- * 非空文字列かを判定します。null/undefined/空文字はfalse。
- * Checks if the value is a non-empty string.
- * @param str - 判定する値 / Value to check
- * @returns 非空文字列ならtrue / true if non-empty string
+ * Checks if the value is a non-empty string. null/undefined/empty string -> false.
+ * @param str - Value to check
+ * @returns true if non-empty string
  * @example isValidStr('hello') // true
  * @example isValidStr('') // false
  * @category Type Guards
  */
 declare const isValidStr: (str: unknown) => str is string;
 /**
- * 値を取得し、null/undefined/空ならデフォルト値を返します。関数・Promiseを自動判定。
- * Returns value or default; supports functions and Promises.
- * @param value - 値または関数 / Value or thunk
- * @param els - デフォルト値または関数 / Default or thunk
- * @returns 値またはデフォルト / Value or default
+ * Returns value or a default. Detects functions and Promises automatically.
+ * @param value - Value or thunk
+ * @param els - Default value or thunk
+ * @returns Value or default
  * @example valueOr('v','d') // 'v'
  * @example valueOr(asyncFetch(), 'fallback') // Promise resolves to fetched or fallback
  * @example await valueOr(() => cache.get(id), () => api.fetch(id))
@@ -25,32 +23,39 @@ type MaybeFunction<T> = T | (() => MaybePromise<T>);
 declare const valueOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)) => MaybePromise<T | E | undefined | null>;
 declare const emptyOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)) => MaybePromise<T | E | undefined | null>;
 /**
- * 値が空か判定します。数値/booleanは空としません。
- * Checks emptiness; numbers/booleans are NOT empty.
- * @param value - 判定対象 / Value to check
- * @returns 空ならtrue / true if empty
+ * Checks emptiness with intuitive rules: numbers and booleans are NOT empty.
+ * @param value - Value to check
+ * @returns true if empty
  * @example isEmpty(0) // false
  * @example isEmpty([]) // true
  * @category Core Functions
  */
 declare const isEmpty: (value: unknown) => boolean;
 /**
- * 文字列を数値に変換（全角・カンマ対応）。無効時はnull。
- * Converts to number (full-width/comma aware). Returns null on invalid.
- * @param value - 変換する値 / Value to convert
- * @returns 数値またはnull / number or null
+ * Converts a value to number (full-width and comma aware). Returns null when invalid.
+ * @param value - Value to convert
+ * @returns number or null
  * @example toNumber('1,234.5') // 1234.5
  * @example toNumber('１２３') // 123
  * @example toNumber('abc') // null
  * @category Core Functions
  */
 declare const toNumber: (value: unknown) => number | null;
+/**
+ * Converts various inputs to boolean. Numbers: 0 -> false, non-zero -> true.
+ * Strings: 'true'|'t'|'y'|'yes'|'ok' -> true; 'false'|'f'|'n'|'no'|'ng' -> false.
+ * If a function or Promise is provided, it will be resolved recursively.
+ * Returns the `undetected` fallback when the value cannot be interpreted (default null).
+ * @param value - Value, thunk, or Promise
+ * @param undetected - Fallback when value cannot be interpreted (default null)
+ * @returns boolean or null (sync or Promise)
+ * @category Core Functions
+ */
 declare const toBool: (value: unknown, undetected?: boolean | null) => MaybePromise<boolean | null>;
 /**
- * 真偽値へ安全に変換。数値は0判定、それ以外はデフォルト。
- * Safely converts to boolean; numbers use zero check; otherwise default.
- * @param value - 値 / Value
- * @param defaultValue - デフォルト / Default (false)
+ * Safely converts to boolean; numbers use zero check; otherwise returns the provided default.
+ * @param value - Value
+ * @param defaultValue - Default when value is not number/boolean (false)
  * @returns boolean
  * @example boolIf(1) // true
  * @example boolIf('x', true) // true
@@ -58,22 +63,21 @@ declare const toBool: (value: unknown, undetected?: boolean | null) => MaybeProm
  */
 declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean;
 /**
- * 指定フレーム後に関数を実行。requestAnimationFrameベース。
  * Runs a function after N frames using requestAnimationFrame.
- * @param func - 実行関数 / Function to run
- * @param frameCount - 待機フレーム数 / Frames to wait (default 0)
+ * @param func - Function to run
+ * @param frameCount - Frames to wait (default 0)
  * @example waited(() => doMeasure(), 1)
  * @example waited(startAnimation, 2)
  * @category Core Functions
  */
 declare const waited: (func: () => void, frameCount?: number) => void;
 /**
- * 2値を比較し、一致すれば値、異なればデフォルト。null/undefinedは同値扱い。Promise対応。
- * Compares two values; if equal returns value, else default. Nil is equal. Promise-aware.
- * @param param1 - 値1 / First value
- * @param param2 - 値2 / Second value
- * @param els - デフォルト / Default
- * @returns 値またはデフォルト / Value or default (sync or Promise)
+ * Compares two values; if equal returns the value, otherwise returns the default.
+ * null and undefined are considered equal. Promise-aware.
+ * @param param1 - First value (or thunk/promise)
+ * @param param2 - Second value (or thunk/promise)
+ * @param els - Default value (or thunk)
+ * @returns Value or default (sync or Promise)
  * @example equalsOr('a','a','d') // 'a'
  * @example await equalsOr(fetchStatus(),'ok','ng')
  * @example equalsOr(null, undefined, 'd') // null
@@ -81,47 +85,44 @@ declare const waited: (func: () => void, frameCount?: number) => void;
  */
 declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
 /**
- * JSON/JSON5を安全にパース。失敗時はnull。オブジェクトはそのまま返す。
  * Safely parses JSON/JSON5; returns null on error; passes objects through.
- * @param str - 文字列またはオブジェクト / String or object
- * @returns パース結果またはnull / Parsed object or null
+ * @param str - String or object
+ * @returns Parsed object or null
  * @example parseJSON('{"a":1}') // {a:1}
  * @example parseJSON('{a:1}') // {a:1} (JSON5)
  * @category Conversion
  */
 declare const parseJSON: <T = any>(str: string | object) => T | null;
 /**
- * オブジェクト/配列のみJSON文字列化。文字列や数値はnullを返す。
- * Stringifies objects/arrays; returns null for strings/numbers.
- * @param obj - 対象 / Target object
- * @returns JSON文字列またはnull / JSON string or null
+ * Stringifies objects/arrays; returns null for strings or numbers.
+ * @param obj - Target object
+ * @returns JSON string or null
  * @example jsonStringify({a:1}) // '{"a":1}'
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
 declare const jsonStringify: <T = any>(obj: T) => string | null;
 /**
- * 値を配列化。null/undefinedは空配列。lodashの[null]問題を解消。
- * Casts value to array; nil becomes [] (not [null]).
- * @param value - 値 / Value
- * @returns 配列 / Array
+ * Casts value to array; null/undefined become [] (not [null]).
+ * @param value - Value
+ * @returns Array
  * @example castArray(1) // [1]
  * @example castArray(null) // []
  * @category Array Utilities
  */
 declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
 /**
- * 2オブジェクトの差分を取得。ディープパス対応。keyExcludesで除外モード。
- * Returns diff between objects; supports deep paths. keyExcludes to invert keys.
- * @param sourceValue - 元 / Source
- * @param currentValue - 現在 / Current
- * @param keys - チェックするキー / Keys (deep paths ok)
- * @param options - { keyExcludes } キー除外モード（トップレベルのみ） / exclude mode (top-level only)
- * @param finallyCallback - finally用 / Finally callback
- * @param notEmptyCallback - 差分あり時のコールバック / Called when diff not empty
- * @returns 差分オブジェクト / Diff object
+ * Computes differences between two objects. Supports deep paths. When `keyExcludes` is true,
+ * the provided keys are excluded (top-level only) from diffing.
+ * @param sourceValue - Source object
+ * @param currentValue - Current object
+ * @param keys - Keys to check (deep paths allowed)
+ * @param options - { keyExcludes } to treat keys as excludes (top-level only)
+ * @param finallyCallback - Called after diff computation (always if notEmptyCallback returned truthy)
+ * @param notEmptyCallback - Called only when diff is not empty
+ * @returns Diff object
  * @example changes(o1,o2,['name','profile.bio'])
- * @example changes(orig, curr, ['id','created_at'], { keyExcludes:true }) // excludes those keys (top-level only)
+ * @example changes(orig, curr, ['id','created_at'], { keyExcludes:true })
  * @example await changes(a,b,['x'],{}, async diff => save(diff))
  * @example changes(
  *   { profile:{ tags:['a','b'] } },
@@ -132,24 +133,22 @@ declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
  */
 declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions, finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>, notEmptyCallback?: ChangesAfterCallback<Record<string, any>>) => Record<string, any>;
 /**
- * 配列のネスト深さを返します。非配列は0、空配列は1。
- * Returns nesting depth of arrays. Non-array: 0; empty array: 1.
- * @param ary - 配列 / Array
- * @returns 深さ / Depth
+ * Returns nesting depth of arrays. Non-array: 0; empty array: 1. Uses minimum depth for mixed nesting.
+ * @param ary - Array
+ * @returns Depth
  * @example arrayDepth([1]) // 1
  * @example arrayDepth([[1],[2]]) // 2
  * @example arrayDepth([[[1]]]) // 3
- * @example arrayDepth([[1,2], [[3],[4,5]]]) // 2 (最小深さを採用)
+ * @example arrayDepth([[1,2], [[3],[4,5]]]) // 2 (uses minimum depth)
  * @example arrayDepth([]) // 1
  * @example arrayDepth('not array') // 0
  * @category Array Utilities
  */
 declare const arrayDepth: (ary: unknown) => number;
 /**
- * ansukoにプラグインを適用します。lodashインスタンスを拡張。
- * Extends ansuko with a plugin; returns augmented instance.
- * @param plugin - 拡張関数 / Plugin function
- * @returns 拡張済みインスタンス / Extended instance
+ * Extends ansuko with a plugin and returns the augmented instance.
+ * @param plugin - Plugin function
+ * @returns Extended instance
  * @example const extended = _.extend(jaPlugin)
  * @category Core Functions
  */

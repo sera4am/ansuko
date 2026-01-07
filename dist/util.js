@@ -1,90 +1,87 @@
 import _ from "lodash";
-// 文字クラス内で特殊な意味を持つ文字をエスケープ: ] - \ ^
-const escapeForCharClass = (s) => s.replace(/[\]\-\\^]/g, '\\$&');
+// Escape special characters inside character classes: ] - \ ^
+const escapeForCharClass = (s) => s.replace(/[\]\-\\\^]/g, '\\$&');
 /**
- * 多様なハイフン/ダッシュ/横線を1文字に正規化します。
- * Normalizes many hyphen/dash/horizontal-line code points into one.
- * @param text - 対象文字列 / Text to normalize
- * @param replacement - 置換文字 / Replacement (default "‐")
- * @param expandInterpretation - 波ダッシュ等も対象にするか / Include tildes/underscores, etc.
- * @returns 正規化文字列またはnull / Normalized text or null
- * @example haifun('東京ー大阪—名古屋') // '東京‐大阪‐名古屋'
+ * Normalizes many hyphen/dash/horizontal-line code points into a single character.
+ * @param text - Text to normalize
+ * @param replacement - Replacement character (default "‐")
+ * @param expandInterpretation - Also normalize tildes/underscores and related marks
+ * @returns Normalized text or null
+ * @example haifun('TokyoーOsaka—Nagoya') // 'Tokyo‐Osaka‐Nagoya'
  * @example haifun('file_name〜test','‐',true) // 'file‐name‐test'
  * @example haifun('ABC—123−XYZ','-') // 'ABC-123-XYZ'
  * @category String Utilities
  */
 export const haifun = (text, replacement = "‐", expandInterpretation = false) => {
     const base = [
-        "\u002D", // - (HYPHEN-MINUS: ASCII標準のハイフン/マイナス)
-        "\u02D7", // ˗ (MODIFIER LETTER MINUS SIGN: 音韻記号のマイナス)
-        "\u1173", // ᅳ (HANGUL JUNGSEONG EU: ハングルの母音字母)
-        "\u1B78", // ᭸ (BALINESE LETTER U: バリ文字の母音記号)
-        "\u2010", // ‐ (HYPHEN: 改行可能なハイフン)
-        "\u2011", // ‑ (NON-BREAKING HYPHEN: 改行不可のハイフン)
-        "\u2012", // ‒ (FIGURE DASH: 数字幅のダッシュ)
-        "\u2013", // – (EN DASH: 欧文の範囲表示用ダッシュ)
-        "\u2014", // — (EM DASH: 欧文の区切り用長ダッシュ)
-        "\u2015", // ― (HORIZONTAL BAR: 和文の水平線/ダッシュ)
-        "\u2043", // ⁃ (HYPHEN BULLET: 箇条書き用ハイフン)
-        "\u207B", // ⁻ (SUPERSCRIPT MINUS: 上付きマイナス)
-        "\u2212", // − (MINUS SIGN: 数学用マイナス記号)
-        "\u25AC", // ▬ (BLACK RECTANGLE: 黒い矩形)
-        "\u2500", // ─ (BOX DRAWINGS LIGHT HORIZONTAL: 罫線素片)
-        "\u2501", // ━ (BOX DRAWINGS HEAVY HORIZONTAL: 太罫線素片)
-        "\u2574", // ╴ (BOX DRAWINGS LIGHT LEFT: 左向き罫線)
-        "\u2576", // ╶ (BOX DRAWINGS LIGHT RIGHT: 右向き罫線)
-        "\u257C", // ╼ (BOX DRAWINGS LIGHT LEFT AND HEAVY RIGHT: 左軽右重罫線)
-        "\u257A", // ╺ (BOX DRAWINGS HEAVY LEFT AND LIGHT RIGHT: 左重右軽罫線)
-        "\u257E", // ╾ (BOX DRAWINGS HEAVY LEFT: 左向き太罫線)
-        "\u2796", // ➖ (HEAVY MINUS SIGN: 太字マイナス記号)
-        "\u2F00", // ⼀ (KANGXI RADICAL ONE: 康熙部首の一)
-        "\u30FC", // ー (KATAKANA-HIRAGANA PROLONGED SOUND MARK: 長音記号)
-        "\u3127", // ㄧ (BOPOMOFO LETTER I: 注音符号のイ)
-        "\u3161", // ㅡ (HANGUL LETTER EU: ハングル互換字母)
-        "\u3192", // ㆒ (IDEOGRAPHIC ANNOTATION ONE MARK: 漢数字注釈の一)
-        "\u31D0", // ㇐ (CJK STROKE H: CJK筆画の横)
-        "\u4E00", // 一 (CJK UNIFIED IDEOGRAPH-4E00: 漢字の一)
-        "\u4EA0", // 亠 (CJK UNIFIED IDEOGRAPH-4EA0: 漢字の亠/なべぶた)
-        "\uFE58", // ﹘ (SMALL EM DASH: 小字形の長ダッシュ)
-        "\uFE63", // ﹣ (SMALL HYPHEN-MINUS: 小字形のハイフン)
-        "\uFF0D", // − (FULL WIDTH HYPHEN-MINUS: 全角ハイフンマイナス)
-        "\uFF70", // ｰ (HALF WIDTH KATAKANA-HIRAGANA PROLONGED SOUND MARK: 半角長音)
-        "\uFFDA", // ￚ (HALFWIDTH HANGUL LETTER EU: 半角ハングル字母)
-        "\u10110", // 𐄐 (AEGEAN NUMBER TEN: エーゲ数字の10)
-        "\u10191", // 𐆑 (ROMAN UNCIA SIGN: ローマ数字のウンキア記号)
-        "\u1680", // (OGHAM SPACE MARK: オガム文字の空白記号)
+        "\u002D", // - (HYPHEN-MINUS: ASCII hyphen/minus)
+        "\u02D7", // ˗ (MODIFIER LETTER MINUS SIGN)
+        "\u1173", // ᅳ (HANGUL JUNGSEONG EU)
+        "\u1B78", // ᭸ (BALINESE LETTER U)
+        "\u2010", // ‐ (HYPHEN)
+        "\u2011", // ‑ (NON-BREAKING HYPHEN)
+        "\u2012", // ‒ (FIGURE DASH)
+        "\u2013", // – (EN DASH)
+        "\u2014", // — (EM DASH)
+        "\u2015", // ― (HORIZONTAL BAR)
+        "\u2043", // ⁃ (HYPHEN BULLET)
+        "\u207B", // ⁻ (SUPERSCRIPT MINUS)
+        "\u2212", // − (MINUS SIGN)
+        "\u25AC", // ▬ (BLACK RECTANGLE)
+        "\u2500", // ─ (BOX DRAWINGS LIGHT HORIZONTAL)
+        "\u2501", // ━ (BOX DRAWINGS HEAVY HORIZONTAL)
+        "\u2574", // ╴ (BOX DRAWINGS LIGHT LEFT)
+        "\u2576", // ╶ (BOX DRAWINGS LIGHT RIGHT)
+        "\u257C", // ╼ (BOX DRAWINGS LIGHT LEFT AND HEAVY RIGHT)
+        "\u257A", // ╺ (BOX DRAWINGS HEAVY LEFT AND LIGHT RIGHT)
+        "\u257E", // ╾ (BOX DRAWINGS HEAVY LEFT)
+        "\u2796", // ➖ (HEAVY MINUS SIGN)
+        "\u2F00", // ⼀ (KANGXI RADICAL ONE)
+        "\u30FC", // ー (KATAKANA-HIRAGANA PROLONGED SOUND MARK)
+        "\u3127", // ㄧ (BOPOMOFO LETTER I)
+        "\u3161", // ㅡ (HANGUL LETTER EU)
+        "\u3192", // ㆒ (IDEOGRAPHIC ANNOTATION ONE MARK)
+        "\u31D0", // ㇐ (CJK STROKE H)
+        "\u4E00", // 一 (CJK UNIFIED IDEOGRAPH-4E00)
+        "\u4EA0", // 亠 (CJK UNIFIED IDEOGRAPH-4EA0)
+        "\uFE58", // ﹘ (SMALL EM DASH)
+        "\uFE63", // ﹣ (SMALL HYPHEN-MINUS)
+        "\uFF0D", // − (FULL WIDTH HYPHEN-MINUS)
+        "\uFF70", // ｰ (HALF WIDTH PROLONGED SOUND MARK)
+        "\uFFDA", // ￚ (HALFWIDTH HANGUL LETTER EU)
+        "\u10110", // 𐄐 (AEGEAN NUMBER TEN)
+        "\u10191", // 𐆑 (ROMAN UNCIA SIGN)
+        "\u1680", // (OGHAM SPACE MARK)
     ];
     const ex = [
-        "\u2192", // → (RIGHTWARDS ARROW: 右向き矢印)
-        "\u2504", // ┄ (BOX DRAWINGS LIGHT TRIPLE DASH HORIZONTAL: 3点鎖線)
-        "\u2505", // ┅ (BOX DRAWINGS HEAVY TRIPLE DASH HORIZONTAL: 太3点鎖線)
-        "\u2508", // ┈ (BOX DRAWINGS LIGHT QUADRUPLE DASH HORIZONTAL: 4点鎖線)
-        "\u2509", // ┉ (BOX DRAWINGS HEAVY QUADRUPLE DASH HORIZONTAL: 太4点鎖線)
-        "\u254C", // ╌ (BOX DRAWINGS LIGHT DOUBLE DASH HORIZONTAL: 2点鎖線)
-        "\u254D", // ╍ (BOX DRAWINGS HEAVY DOUBLE DASH HORIZONTAL: 太2点鎖線)
-        "\u301C", // 〜 (WAVE DASH: 波ダッシュ)
-        "\u007E", // ~ (TILDE: チルダ)
-        "\u005F", // _ (LOW LINE: アンダースコア)
-        "\uFF3F", // ＿ (FULLWIDTH LOW LINE: 全角アンダースコア)
-        "\uFE4E", // ﹎ (CENTRELINE LOW LINE: 中央線アンダースコア)
-        "\uFFE3", // ￣ (FULLWIDTH MACRON: 全角マクロン/上線)
-        "\u02C9", // ˉ (MODIFIER LETTER MACRON: 修飾用マクロン)
+        "\u2192", // → (RIGHTWARDS ARROW)
+        "\u2504", // ┄ (BOX DRAWINGS LIGHT TRIPLE DASH HORIZONTAL)
+        "\u2505", // ┅ (BOX DRAWINGS HEAVY TRIPLE DASH HORIZONTAL)
+        "\u2508", // ┈ (BOX DRAWINGS LIGHT QUADRUPLE DASH HORIZONTAL)
+        "\u2509", // ┉ (BOX DRAWINGS HEAVY QUADRUPLE DASH HORIZONTAL)
+        "\u254C", // ╌ (BOX DRAWINGS LIGHT DOUBLE DASH HORIZONTAL)
+        "\u254D", // ╍ (BOX DRAWINGS HEAVY DOUBLE DASH HORIZONTAL)
+        "\u301C", // 〜 (WAVE DASH)
+        "\u007E", // ~ (TILDE)
+        "\u005F", // _ (LOW LINE)
+        "\uFF3F", // ＿ (FULLWIDTH LOW LINE)
+        "\uFE4E", // ﹎ (CENTRELINE LOW LINE)
+        "\uFFE3", // ￣ (FULLWIDTH MACRON)
+        "\u02C9", // ˉ (MODIFIER LETTER MACRON)
     ];
     const baseClass = base.map(escapeForCharClass).join("");
     const exClass = ex.map(escapeForCharClass).join("");
-    // 'u' フラグを追加して Unicode のサロゲート対を正しく扱い、文字クラスの特殊文字は事前にエスケープする
     const res = text?.replace(new RegExp(`[${baseClass}]`, "gu"), replacement);
     return (expandInterpretation ? res?.replace(new RegExp(`[${exClass}]`, "gu"), replacement) ?? undefined : res) ?? null;
 };
 /**
- * 全角を半角へ変換し、必要に応じてハイフンも統一します。
- * Converts full-width to half-width; optionally normalizes hyphens.
- * @param value - 変換対象 / Value to convert
- * @param withHaifun - ハイフン統一文字 / Hyphen replacement
- * @returns 半角文字列またはnull / Half-width string or null
+ * Converts full-width characters to half-width; optionally normalizes hyphens.
+ * @param value - Value to convert
+ * @param withHaifun - Hyphen replacement character
+ * @returns Half-width string or null
  * @example toHalfWidth('ＡＢＣ１２３') // 'ABC123'
  * @example toHalfWidth('東京都千代田区１ー２ー３','-') // '東京都千代田区1-2-3'
- * @example toHalfWidth('ＡＢＣ[全角スペース]１２３') // 'ABC 123'
+ * @example toHalfWidth('ＡＢＣ　１２３') // 'ABC 123'
  * @category String Utilities
  */
 export const toHalfWidth = (value, withHaifun) => {

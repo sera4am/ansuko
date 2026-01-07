@@ -1,5 +1,8 @@
 import GeoJSON from "geojson";
 import { type AnsukoType } from "../index.js";
+/**
+ * Geometry type selector for conversions. Use `auto` to try higher dimensions first.
+ */
 export declare enum GeomType {
     point = 0,
     polygon = 1,

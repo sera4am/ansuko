@@ -1,4 +1,4 @@
-import { toHalfWidth, haifun } from "../util.js";
+import { haifun } from "../util.js";
 const ansukoJaPlugin = (ansuko) => {
     const _ = ansuko;
     const kanaMap = {
@@ -23,10 +23,9 @@ const ansukoJaPlugin = (ansuko) => {
         '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・', '\\)': '）', '\\(': '（'
     };
     /**
-     * 半角カナを全角カナへ変換します。
      * Converts half-width katakana to full-width.
-     * @param str - 文字列 / String
-     * @returns 全角カナまたはnull / Full-width katakana or null
+     * @param str - String
+     * @returns Full-width katakana or null
      * @example _.kanaToFull('ｶﾞｷﾞ') // 'ガギ'
      * @category Japanese Utilities
      */
@@ -38,10 +37,9 @@ const ansukoJaPlugin = (ansuko) => {
         return str.replace(regex, m => kanaMap[m]);
     };
     /**
-     * 全角カナを半角カナへ変換します（濁点は2文字になる場合あり）。
-     * Converts full-width katakana to half-width (dakuten may split).
-     * @param str - 文字列 / String
-     * @returns 半角カナまたはnull / Half-width or null
+     * Converts full-width katakana to half-width (dakuten may split into two characters).
+     * @param str - String
+     * @returns Half-width katakana or null
      * @example _.kanaToHalf('ガギ') // 'ｶﾞｷﾞ'
      * @category Japanese Utilities
      */
@@ -56,10 +54,9 @@ const ansukoJaPlugin = (ansuko) => {
         return str.replace(regex, m => reverseMap[m]);
     };
     /**
-     * カナをひらがなへ変換（半角も自動全角化してから処理）。
-     * Converts katakana to hiragana; half-width is auto-full-width first.
-     * @param str - 文字列 / String
-     * @returns ひらがなまたはnull / Hiragana or null
+     * Converts katakana to hiragana; half-width input is converted to full-width first.
+     * @param str - String
+     * @returns Hiragana or null
      * @example _.kanaToHira('アイウ') // 'あいう'
      * @category Japanese Utilities
      */
@@ -70,10 +67,9 @@ const ansukoJaPlugin = (ansuko) => {
         return kanaToFull(str)?.replace(/[\u30a1-\u30f6]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) ?? null;
     };
     /**
-     * ひらがなをカナへ変換します。
      * Converts hiragana to katakana.
-     * @param str - 文字列 / String
-     * @returns カナまたはnull / Katakana or null
+     * @param str - String
+     * @returns Katakana or null
      * @example _.hiraToKana('あいう') // 'アイウ'
      * @category Japanese Utilities
      */
@@ -84,11 +80,10 @@ const ansukoJaPlugin = (ansuko) => {
         return str.replace(/[\u3041-\u3096]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60)) ?? null;
     };
     /**
-     * 半角を全角へ変換し、ハイフン統一も可能です。
-     * Converts half-width to full-width; optionally normalizes hyphens.
-     * @param value - 変換対象 / Value
-     * @param withHaifun - ハイフン置換文字 / Hyphen replacement
-     * @returns 全角文字列またはnull / Full-width string or null
+     * Converts half-width characters to full-width; optionally normalizes hyphens.
+     * @param value - Value to convert
+     * @param withHaifun - Hyphen replacement character
+     * @returns Full-width string or null
      * @example _.toFullWidth('ABC-123','ー') // 'ＡＢＣー１２３'
      * @category Japanese Utilities
      */
@@ -106,9 +101,36 @@ const ansukoJaPlugin = (ansuko) => {
             if (code === 0x0020) {
                 return '\u3000'; // 全角スペース
             }
-            // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
+            // 全角は0x0021～0x007E、半角は0xFF01～0xFF5E
             if (code >= 0x0021 && code <= 0x007E) {
                 return String.fromCharCode(code + 0xFEE0);
+            }
+            return char;
+        }).join('');
+        return withHaifun ? haifun(str, withHaifun) : str;
+    };
+    /**
+     * Converts to half-width and optionally normalizes hyphens.
+     * @param value - Value to convert
+     * @param withHaifun - Hyphen replacement character
+     * @returns Half-width string or null
+     * @example _.toHalfWidth('ＡＢＣー１２３','-') // 'ABC-123'
+     * @example _.toHalfWidth(' ｱｲｳ　123 ') // ' ｱｲｳ 123 '
+     * @category Japanese Utilities
+     */
+    const toHalfWidth = (value, withHaifun) => {
+        if (_.isNil(value)) {
+            return null;
+        }
+        const str = String(value).split('').map(char => {
+            const code = char.charCodeAt(0);
+            // スペース
+            if (code === 0x3000) {
+                return '\u0020'; // 半角スペース
+            }
+            // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
+            if (code >= 0xFF01 && code <= 0xFF5E) {
+                return String.fromCharCode(code - 0xFEE0);
             }
             return char;
         }).join('');

@@ -128,7 +128,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
      * @param withHaifun - Hyphen replacement character
      * @returns Half-width string or null
      * @example _.toHalfWidth('ＡＢＣー１２３','-') // 'ABC-123'
-     * @example _.toHalfWidth(' ｱｲｳ　123 ') // ' ｱｲｳ 123 '
+     * @example _.toHalfWidth(' ｱｲｳ 123 ') // ' ｱｲｳ 123 '
      * @category Japanese Utilities
      */
     const toHalfWidth = (value: unknown, withHaifun?: string): string | null => {

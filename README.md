@@ -1,6 +1,5 @@
 # ansuko
 
-[![CI](https://img.shields.io/github/actions/workflow/status/sera4am/ansuko/ci.yml?branch=main)](https://github.com/sera4am/ansuko/actions/workflows/ci.yml)
 
 A modern JavaScript/TypeScript utility library that extends lodash with practical, intuitive behaviors.
 

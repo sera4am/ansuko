@@ -154,7 +154,7 @@ declare const arrayDepth: (ary: unknown) => number;
  * @example const extended = _.extend(jaPlugin)
  * @category Core Functions
  */
-declare const extend: <T>(this: any, plugin: (a: any) => T) => any & T;
+declare const extend: <T extends AnsukoType, E>(this: T, plugin: (a: T) => T & E) => T & E;
 export type ChangesOptions = {
     keyExcludes?: boolean;
 };

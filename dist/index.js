@@ -477,7 +477,7 @@ const arrayDepth = (ary) => {
  */
 const extend = function (plugin) {
     if (typeof plugin === 'function') {
-        plugin(this); // ← this が undefined になってる？
+        return plugin(this); // プラグインの戻り値をそのまま返す
     }
     return this;
 };

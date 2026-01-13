@@ -13,6 +13,7 @@ export declare enum GeomType {
     auto = "auto"
 }
 export interface AnsukoGeoPluginExtension {
+    toLngLatArray: (coord: any, digit?: number) => [lng: number, lat: number] | null;
     toPointGeoJson: (geo: any, digit?: number) => GeoJSON.Point | null;
     toPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.Polygon | null;
     toLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.LineString | null;

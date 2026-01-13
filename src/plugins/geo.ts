@@ -17,6 +17,7 @@ export enum GeomType {
 }
 
 export interface AnsukoGeoPluginExtension {
+    toLngLatArray: (coord: any, digit?: number) => [lng: number, lat: number] | null
     toPointGeoJson: (geo: any, digit?: number) => GeoJSON.Point | null
     toPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.Polygon | null
     toLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.LineString | null
@@ -35,10 +36,10 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
      * Swaps order if lat/lng appear to be inverted. Returns null when invalid.
      * @internal
      */
-    const toLngLatToArray = (coord: any, digit?: number): [number, number] | null => {
+    const toLngLatArray = (coord: any, digit?: number): [lng:number, lat:number] | null => {
         if (_.isNil(coord)) { return null }
-        let tLat:any = null
-        let tLng:any = null
+        let tLat: any = null
+        let tLng: any = null
         if (Array.isArray(coord) && _.isNumber(coord[0]) && _.isNumber(coord[1])) {
             tLng = _.toNumber(coord[0])
             tLat = _.toNumber(coord[1])
@@ -72,32 +73,32 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
      * @example toPointGeoJson({ lat:35.6895, lng:139.6917 })
      * @category Geo Utilities
      */
-    const toPointGeoJson = (geo: any, digit?:number): GeoJSON.Point | null => {
+    const toPointGeoJson = (geo: any, digit?: number): GeoJSON.Point | null => {
         let lngLat: [number, number] | null = null
 
         if (_.isEmpty(geo)) { return null }
 
         if (Array.isArray(geo)) {
             if (_.size(geo) === 1) {
-                lngLat = toLngLatToArray(geo[0], digit)
+                lngLat = toLngLatArray(geo[0], digit)
             } else {
-                lngLat = toLngLatToArray(geo, digit)
+                lngLat = toLngLatArray(geo, digit)
             }
         } else if (_.has(geo, "lat") || _.has(geo, "latitude")) {
-            lngLat = toLngLatToArray(geo, digit)
+            lngLat = toLngLatArray(geo, digit)
         } else if (_.has(geo, "type")) {
-            switch((geo as any).type.toLowerCase()) {
+            switch ((geo as any).type.toLowerCase()) {
                 case "featurecollection":
                     if ((_.get(geo, "features[0].geometry.type") as any)?.toLowerCase() !== "point") { return null }
                     if (_.size((geo as any).features) !== 1) { return null }
-                    lngLat = toLngLatToArray(_.get(geo, "features[0].geometry.coordinates"), digit)
+                    lngLat = toLngLatArray(_.get(geo, "features[0].geometry.coordinates"), digit)
                     break
                 case "feature":
                     if ((geo as any).geometry?.type?.toLowerCase() !== "point") { return null }
-                    lngLat = toLngLatToArray((geo as any).geometry?.coordinates, digit)
+                    lngLat = toLngLatArray((geo as any).geometry?.coordinates, digit)
                     break
                 case "point":
-                    lngLat = toLngLatToArray((geo as any).coordinates, digit)
+                    lngLat = toLngLatArray((geo as any).coordinates, digit)
                     break
                 default:
                     return null
@@ -128,9 +129,9 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     const toPolygonGeoJson = (geo: any, digit?: number): GeoJSON.Polygon | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) {  // [[外周リング]]
-            ll = (_.first(geo) as any).map((coord: any) => toLngLatToArray(coord, digit))
+            ll = (_.first(geo) as any).map((coord: any) => toLngLatArray(coord, digit))
         } else if (_.arrayDepth(geo) === 2) {  // [外周リング]
-            ll = geo.map((coord: any) => toLngLatToArray(coord, digit))
+            ll = geo.map((coord: any) => toLngLatArray(coord, digit))
         } else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
                 case "featurecollection":
@@ -138,14 +139,14 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
                     if (_.size(geo.features) !== 1) { return null }
                     // 最初のリング（外周）だけ取得
                     ll = (_.first((_.first(geo.features) as any)?.geometry.coordinates) as any)
-                        ?.map((coord: any) => toLngLatToArray(coord, digit))
+                        ?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "polygon") { return null }
-                    ll = (_.first(geo.geometry.coordinates) as any)?.map((coord: any) => toLngLatToArray(coord, digit))
+                    ll = (_.first(geo.geometry.coordinates) as any)?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 case "polygon":
-                    ll = (_.first(geo.coordinates) as any)?.map((coord: any) => toLngLatToArray(coord, digit))
+                    ll = (_.first(geo.coordinates) as any)?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 default:
                     return null
@@ -175,22 +176,22 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     const toLineStringGeoJson = (geo: any, digit?: number): GeoJSON.LineString | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) {
-            ll = (_.first(geo) as any).map((l: any) => toLngLatToArray(l, digit))
+            ll = (_.first(geo) as any).map((l: any) => toLngLatArray(l, digit))
         } else if (_.arrayDepth(geo) === 2) {
-            ll = geo.map((l: any) => toLngLatToArray(l, digit))
+            ll = geo.map((l: any) => toLngLatArray(l, digit))
         } else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
                 case "featurecollection":
                     if (_.get(geo, "features[0].geometry.type")?.toLowerCase() !== "linestring") { return null }
                     if (_.size(geo.features) !== 1) { return null }
-                    ll = (_.first(geo.features) as any)?.geometry.coordinates?.map((l: any) => toLngLatToArray(l, digit))
+                    ll = (_.first(geo.features) as any)?.geometry.coordinates?.map((l: any) => toLngLatArray(l, digit))
                     break
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "linestring") { return null }
-                    ll = geo.geometry?.coordinates?.map((l: any) => toLngLatToArray(l, digit))
+                    ll = geo.geometry?.coordinates?.map((l: any) => toLngLatArray(l, digit))
                     break
                 case "linestring":
-                    ll = geo.coordinates?.map((l: any) => toLngLatToArray(l, digit))
+                    ll = geo.coordinates?.map((l: any) => toLngLatArray(l, digit))
                     break
                 default:
                     return null
@@ -219,21 +220,21 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     const toMultiPointGeoJson = (geo: any, digit?: number): GeoJSON.MultiPoint | null => {
         let ll = null
         if (_.arrayDepth(geo) === 2) {  // MultiPointは2次元
-            ll = geo.map((coord: any) => toLngLatToArray(coord, digit))
+            ll = geo.map((coord: any) => toLngLatArray(coord, digit))
         } else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
                 case "featurecollection":
                     if (_.get(geo, "features[0].geometry.type")?.toLowerCase() !== "multipoint") { return null }
                     if (_.size(geo.features) !== 1) { return null }
                     ll = (_.first(geo.features) as any).geometry?.coordinates
-                        ?.map((coord: any) => toLngLatToArray(coord, digit))
+                        ?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multipoint") { return null }
-                    ll = geo.geometry?.coordinates?.map((coord: any) => toLngLatToArray(coord, digit))
+                    ll = geo.geometry?.coordinates?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 case "multipoint":
-                    ll = geo.coordinates?.map((coord: any) => toLngLatToArray(coord, digit))
+                    ll = geo.coordinates?.map((coord: any) => toLngLatArray(coord, digit))
                     break
                 default:
                     return null
@@ -263,25 +264,25 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     const toMultiPolygonGeoJson = (geo: any, digit?: number): GeoJSON.MultiPolygon | null => {
         let ll = null
         if (_.arrayDepth(geo) === 4) {
-            ll = geo.map((polygon: any) => (_.first(polygon) as any).map((l: any) => toLngLatToArray(l, digit)))
+            ll = geo.map((polygon: any) => (_.first(polygon) as any).map((l: any) => toLngLatArray(l, digit)))
         } else if (_.has(geo, "type")) {
             switch (geo.type.toLowerCase()) {
                 case "featurecollection":
                     if (_.get(geo, "features[0].geometry.type")?.toLowerCase() !== "multipolygon") { return null }
                     if (_.size(geo.features) !== 1) { return null }
                     ll = (_.first(geo.features) as any).geometry?.coordinates?.map((polygon: any) =>
-                        (_.first(polygon) as any).map((l: any) => toLngLatToArray(l, digit))
+                        (_.first(polygon) as any).map((l: any) => toLngLatArray(l, digit))
                     )
                     break
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multipolygon") { return null }
                     ll = geo.geometry?.coordinates?.map((polygon: any) =>
-                        (_.first(polygon) as any).map((l: any) => toLngLatToArray(l, digit))
+                        (_.first(polygon) as any).map((l: any) => toLngLatArray(l, digit))
                     )
                     break
                 case "multipolygon":
                     ll = geo.coordinates?.map((polygon: any) =>
-                        (_.first(polygon) as any).map((l: any) => toLngLatToArray(l, digit))
+                        (_.first(polygon) as any).map((l: any) => toLngLatArray(l, digit))
                     )
                     break
                 default:
@@ -301,34 +302,34 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     }
 
 
-        /**
-            * Converts lines to MultiLineString GeoJSON, rejecting self-intersections.
-            * @param geo - Lines
-            * @param digit - Rounding digits
-            * @returns MultiLineString or null
-            * @example toMultiLineStringGeoJson([
-     *   [[139.7,35.6],[139.8,35.65]],
-     *   [[139.75,35.62],[139.85,35.68]]
-     * ])
-     * @category Geo Utilities
-     */
+    /**
+    * Converts lines to MultiLineString GeoJSON, rejecting self-intersections.
+    * @param geo - Lines
+    * @param digit - Rounding digits
+    * @returns MultiLineString or null
+    * @example toMultiLineStringGeoJson([
+    *   [[139.7,35.6],[139.8,35.65]],
+    *   [[139.75,35.62],[139.85,35.68]]
+    * ])
+    * @category Geo Utilities
+    */
     const toMultiLineStringGeoJson = (geo: any, digit?: number): GeoJSON.MultiLineString | null => {
         let ll = null
         if (_.arrayDepth(geo) === 3) {
-            ll = geo.map((line: any) => line.map((l: any) => toLngLatToArray(l, digit)))
+            ll = geo.map((line: any) => line.map((l: any) => toLngLatArray(l, digit)))
         } else if (_.has(geo, "type")) {
             switch (_.get(geo, "type").toLowerCase()) {
                 case "featurecollection":
                     if (_.get(geo, "features[0].geometry.type")?.toLowerCase() !== "multilinestring") { return null }
                     if (_.size(geo.features) !== 1) { return null }
-                    ll = (_.first(geo.features) as any).geometry?.coordinates?.map((line: any) => line.map((l: any) => toLngLatToArray(l, digit)))
+                    ll = (_.first(geo.features) as any).geometry?.coordinates?.map((line: any) => line.map((l: any) => toLngLatArray(l, digit)))
                     break
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multilinestring") { return null }  // 修正
-                    ll = geo.geometry?.coordinates?.map((line: any) => line.map((l: any) => toLngLatToArray(l, digit)))
+                    ll = geo.geometry?.coordinates?.map((line: any) => line.map((l: any) => toLngLatArray(l, digit)))
                     break
                 case "multilinestring":
-                    ll = geo.coordinates?.map((line: any) => line.map((l: any) => toLngLatToArray(l, digit)))
+                    ll = geo.coordinates?.map((line: any) => line.map((l: any) => toLngLatArray(l, digit)))
                     break
                 default:
                     return null
@@ -360,9 +361,9 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
      * ])
      * @category Geo Utilities
      */
-    const unionPolygon = (geo: any, digit?: number):GeoJSON.Polygon|GeoJSON.MultiPolygon|null => {
-        let list:any = null
-        const g:any  = geo
+    const unionPolygon = (geo: any, digit?: number): GeoJSON.Polygon | GeoJSON.MultiPolygon | null => {
+        let list: any = null
+        const g: any = geo
         if (_.arrayDepth(geo) === 4) {
             geo = _.first(geo)
         }
@@ -377,7 +378,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
                 case "featurecollection":
                     list = g.features?.map((f: any) => {
                         const p = toPolygonGeoJson(f, digit)
-                        return p ? turf.polygon(p.coordinates): null
+                        return p ? turf.polygon(p.coordinates) : null
                     }).filter(Boolean)
                     break
                 case "feature":
@@ -386,7 +387,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
                     } else if (g.geometry?.type === "multipolygon") {
                         list = g.geometry?.coordinates.map((c: any) => {
                             const p = toPolygonGeoJson(c, digit)
-                            return p ? turf.polygon(p.coordinates): null
+                            return p ? turf.polygon(p.coordinates) : null
                         }).filter(Boolean)
                     }
                     break
@@ -516,6 +517,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
 
     const a = ansuko as any
 
+    a.toLngLatArray = toLngLatArray
     a.toGeoJson = toGeoJson
     a.toPointGeoJson = toPointGeoJson
     a.toPolygonGeoJson = toPolygonGeoJson

@@ -19,7 +19,7 @@ const ansukoGeoPlugin = (ansuko) => {
      * Swaps order if lat/lng appear to be inverted. Returns null when invalid.
      * @internal
      */
-    const toLngLatToArray = (coord, digit) => {
+    const toLngLatArray = (coord, digit) => {
         if (_.isNil(coord)) {
             return null;
         }
@@ -66,14 +66,14 @@ const ansukoGeoPlugin = (ansuko) => {
         }
         if (Array.isArray(geo)) {
             if (_.size(geo) === 1) {
-                lngLat = toLngLatToArray(geo[0], digit);
+                lngLat = toLngLatArray(geo[0], digit);
             }
             else {
-                lngLat = toLngLatToArray(geo, digit);
+                lngLat = toLngLatArray(geo, digit);
             }
         }
         else if (_.has(geo, "lat") || _.has(geo, "latitude")) {
-            lngLat = toLngLatToArray(geo, digit);
+            lngLat = toLngLatArray(geo, digit);
         }
         else if (_.has(geo, "type")) {
             switch (geo.type.toLowerCase()) {
@@ -84,16 +84,16 @@ const ansukoGeoPlugin = (ansuko) => {
                     if (_.size(geo.features) !== 1) {
                         return null;
                     }
-                    lngLat = toLngLatToArray(_.get(geo, "features[0].geometry.coordinates"), digit);
+                    lngLat = toLngLatArray(_.get(geo, "features[0].geometry.coordinates"), digit);
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "point") {
                         return null;
                     }
-                    lngLat = toLngLatToArray(geo.geometry?.coordinates, digit);
+                    lngLat = toLngLatArray(geo.geometry?.coordinates, digit);
                     break;
                 case "point":
-                    lngLat = toLngLatToArray(geo.coordinates, digit);
+                    lngLat = toLngLatArray(geo.coordinates, digit);
                     break;
                 default:
                     return null;
@@ -125,10 +125,10 @@ const ansukoGeoPlugin = (ansuko) => {
     const toPolygonGeoJson = (geo, digit) => {
         let ll = null;
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) { // [[外周リング]]
-            ll = _.first(geo).map((coord) => toLngLatToArray(coord, digit));
+            ll = _.first(geo).map((coord) => toLngLatArray(coord, digit));
         }
         else if (_.arrayDepth(geo) === 2) { // [外周リング]
-            ll = geo.map((coord) => toLngLatToArray(coord, digit));
+            ll = geo.map((coord) => toLngLatArray(coord, digit));
         }
         else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
@@ -141,16 +141,16 @@ const ansukoGeoPlugin = (ansuko) => {
                     }
                     // 最初のリング（外周）だけ取得
                     ll = _.first(_.first(geo.features)?.geometry.coordinates)
-                        ?.map((coord) => toLngLatToArray(coord, digit));
+                        ?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "polygon") {
                         return null;
                     }
-                    ll = _.first(geo.geometry.coordinates)?.map((coord) => toLngLatToArray(coord, digit));
+                    ll = _.first(geo.geometry.coordinates)?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 case "polygon":
-                    ll = _.first(geo.coordinates)?.map((coord) => toLngLatToArray(coord, digit));
+                    ll = _.first(geo.coordinates)?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 default:
                     return null;
@@ -183,10 +183,10 @@ const ansukoGeoPlugin = (ansuko) => {
     const toLineStringGeoJson = (geo, digit) => {
         let ll = null;
         if (_.arrayDepth(geo) === 3 && _.size(geo) === 1) {
-            ll = _.first(geo).map((l) => toLngLatToArray(l, digit));
+            ll = _.first(geo).map((l) => toLngLatArray(l, digit));
         }
         else if (_.arrayDepth(geo) === 2) {
-            ll = geo.map((l) => toLngLatToArray(l, digit));
+            ll = geo.map((l) => toLngLatArray(l, digit));
         }
         else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
@@ -197,16 +197,16 @@ const ansukoGeoPlugin = (ansuko) => {
                     if (_.size(geo.features) !== 1) {
                         return null;
                     }
-                    ll = _.first(geo.features)?.geometry.coordinates?.map((l) => toLngLatToArray(l, digit));
+                    ll = _.first(geo.features)?.geometry.coordinates?.map((l) => toLngLatArray(l, digit));
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "linestring") {
                         return null;
                     }
-                    ll = geo.geometry?.coordinates?.map((l) => toLngLatToArray(l, digit));
+                    ll = geo.geometry?.coordinates?.map((l) => toLngLatArray(l, digit));
                     break;
                 case "linestring":
-                    ll = geo.coordinates?.map((l) => toLngLatToArray(l, digit));
+                    ll = geo.coordinates?.map((l) => toLngLatArray(l, digit));
                     break;
                 default:
                     return null;
@@ -240,7 +240,7 @@ const ansukoGeoPlugin = (ansuko) => {
     const toMultiPointGeoJson = (geo, digit) => {
         let ll = null;
         if (_.arrayDepth(geo) === 2) { // MultiPointは2次元
-            ll = geo.map((coord) => toLngLatToArray(coord, digit));
+            ll = geo.map((coord) => toLngLatArray(coord, digit));
         }
         else if (_.has(geo, "type")) {
             switch (_.get(geo, "type")?.toLowerCase()) {
@@ -252,16 +252,16 @@ const ansukoGeoPlugin = (ansuko) => {
                         return null;
                     }
                     ll = _.first(geo.features).geometry?.coordinates
-                        ?.map((coord) => toLngLatToArray(coord, digit));
+                        ?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multipoint") {
                         return null;
                     }
-                    ll = geo.geometry?.coordinates?.map((coord) => toLngLatToArray(coord, digit));
+                    ll = geo.geometry?.coordinates?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 case "multipoint":
-                    ll = geo.coordinates?.map((coord) => toLngLatToArray(coord, digit));
+                    ll = geo.coordinates?.map((coord) => toLngLatArray(coord, digit));
                     break;
                 default:
                     return null;
@@ -294,7 +294,7 @@ const ansukoGeoPlugin = (ansuko) => {
     const toMultiPolygonGeoJson = (geo, digit) => {
         let ll = null;
         if (_.arrayDepth(geo) === 4) {
-            ll = geo.map((polygon) => _.first(polygon).map((l) => toLngLatToArray(l, digit)));
+            ll = geo.map((polygon) => _.first(polygon).map((l) => toLngLatArray(l, digit)));
         }
         else if (_.has(geo, "type")) {
             switch (geo.type.toLowerCase()) {
@@ -305,16 +305,16 @@ const ansukoGeoPlugin = (ansuko) => {
                     if (_.size(geo.features) !== 1) {
                         return null;
                     }
-                    ll = _.first(geo.features).geometry?.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatToArray(l, digit)));
+                    ll = _.first(geo.features).geometry?.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatArray(l, digit)));
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multipolygon") {
                         return null;
                     }
-                    ll = geo.geometry?.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatToArray(l, digit)));
+                    ll = geo.geometry?.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatArray(l, digit)));
                     break;
                 case "multipolygon":
-                    ll = geo.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatToArray(l, digit)));
+                    ll = geo.coordinates?.map((polygon) => _.first(polygon).map((l) => toLngLatArray(l, digit)));
                     break;
                 default:
                     return null;
@@ -334,20 +334,20 @@ const ansukoGeoPlugin = (ansuko) => {
         }
     };
     /**
-        * Converts lines to MultiLineString GeoJSON, rejecting self-intersections.
-        * @param geo - Lines
-        * @param digit - Rounding digits
-        * @returns MultiLineString or null
-        * @example toMultiLineStringGeoJson([
- *   [[139.7,35.6],[139.8,35.65]],
- *   [[139.75,35.62],[139.85,35.68]]
- * ])
- * @category Geo Utilities
- */
+    * Converts lines to MultiLineString GeoJSON, rejecting self-intersections.
+    * @param geo - Lines
+    * @param digit - Rounding digits
+    * @returns MultiLineString or null
+    * @example toMultiLineStringGeoJson([
+    *   [[139.7,35.6],[139.8,35.65]],
+    *   [[139.75,35.62],[139.85,35.68]]
+    * ])
+    * @category Geo Utilities
+    */
     const toMultiLineStringGeoJson = (geo, digit) => {
         let ll = null;
         if (_.arrayDepth(geo) === 3) {
-            ll = geo.map((line) => line.map((l) => toLngLatToArray(l, digit)));
+            ll = geo.map((line) => line.map((l) => toLngLatArray(l, digit)));
         }
         else if (_.has(geo, "type")) {
             switch (_.get(geo, "type").toLowerCase()) {
@@ -358,16 +358,16 @@ const ansukoGeoPlugin = (ansuko) => {
                     if (_.size(geo.features) !== 1) {
                         return null;
                     }
-                    ll = _.first(geo.features).geometry?.coordinates?.map((line) => line.map((l) => toLngLatToArray(l, digit)));
+                    ll = _.first(geo.features).geometry?.coordinates?.map((line) => line.map((l) => toLngLatArray(l, digit)));
                     break;
                 case "feature":
                     if (geo.geometry?.type?.toLowerCase() !== "multilinestring") {
                         return null;
                     } // 修正
-                    ll = geo.geometry?.coordinates?.map((line) => line.map((l) => toLngLatToArray(l, digit)));
+                    ll = geo.geometry?.coordinates?.map((line) => line.map((l) => toLngLatArray(l, digit)));
                     break;
                 case "multilinestring":
-                    ll = geo.coordinates?.map((line) => line.map((l) => toLngLatToArray(l, digit)));
+                    ll = geo.coordinates?.map((line) => line.map((l) => toLngLatArray(l, digit)));
                     break;
                 default:
                     return null;
@@ -552,6 +552,7 @@ const ansukoGeoPlugin = (ansuko) => {
         return features;
     };
     const a = ansuko;
+    a.toLngLatArray = toLngLatArray;
     a.toGeoJson = toGeoJson;
     a.toPointGeoJson = toPointGeoJson;
     a.toPolygonGeoJson = toPolygonGeoJson;

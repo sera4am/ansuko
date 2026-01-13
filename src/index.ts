@@ -491,11 +491,11 @@ const arrayDepth = (ary: unknown): number => {
  * @example const extended = _.extend(jaPlugin)
  * @category Core Functions
  */
-const extend = function <T>(this: any, plugin: (a: any) => T): typeof this & T {
+const extend = function <T extends AnsukoType, E>(this: T, plugin: (a: T) => T & E): T & E {
     if (typeof plugin === 'function') {
-        plugin(this)  // ← this が undefined になってる？
+        return plugin(this)  // プラグインの戻り値をそのまま返す
     }
-    return this as typeof this & T
+    return this as T & E
 }
 
 

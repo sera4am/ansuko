@@ -329,19 +329,21 @@ const parseJSON = (str) => {
 /**
  * Stringifies objects/arrays; returns null for strings or numbers.
  * @param obj - Target object
+ * @param replacer — A function that transforms the results.
+ * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
  * @returns JSON string or null
  * @example jsonStringify({a:1}) // '{"a":1}'
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
-const jsonStringify = (obj) => {
+const jsonStringify = (obj, replacer, space) => {
     if (_.isNil(obj)) {
         return null;
     }
     if (typeof obj === "string") {
         try {
             const j = JSON5.parse(obj);
-            return JSON.stringify(j);
+            return JSON.stringify(j, replacer, space);
         }
         catch {
             return null;
@@ -349,7 +351,7 @@ const jsonStringify = (obj) => {
     }
     if (typeof obj === "object") {
         try {
-            return JSON.stringify(obj);
+            return JSON.stringify(obj, replacer, space);
         }
         catch {
             return null;

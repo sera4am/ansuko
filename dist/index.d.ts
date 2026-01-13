@@ -96,12 +96,14 @@ declare const parseJSON: <T = any>(str: string | object) => T | null;
 /**
  * Stringifies objects/arrays; returns null for strings or numbers.
  * @param obj - Target object
+ * @param replacer — A function that transforms the results.
+ * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
  * @returns JSON string or null
  * @example jsonStringify({a:1}) // '{"a":1}'
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
-declare const jsonStringify: <T = any>(obj: T) => string | null;
+declare const jsonStringify: <T = any>(obj: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number | undefined) => string | null;
 /**
  * Casts value to array; null/undefined become [] (not [null]).
  * @param value - Value

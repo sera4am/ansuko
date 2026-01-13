@@ -789,6 +789,64 @@ const data = _.parseJSON(str)
 if (!data) { /** エラー処理 **/ }
 ```
 
+### フォーマットとフィルタリング付きJSONエクスポート
+
+```javascript
+// 整形出力付きで設定をエクスポート
+const config = {
+  apiUrl: 'https://api.example.com',
+  timeout: 5000,
+  features: {
+    darkMode: true,
+    notifications: false
+  }
+}
+
+// 設定ファイル用の整形出力されたJSON
+const configJson = _.jsonStringify(config, null, 2)
+fs.writeFileSync('config.json', configJson)
+
+// Before: 冗長
+let filtered
+try {
+  filtered = JSON.stringify(
+    config,
+    (key, value) => {
+      if (key === 'apiKey' || key === 'secret') return undefined
+      return value
+    },
+    2
+  )
+} catch (e) {
+  filtered = null
+}
+
+// After: センシティブフィールドのフィルタリング付きでクリーン
+const safeExport = _.jsonStringify(
+  userData,
+  (key, value) => ['password', 'apiKey', 'secret'].includes(key) ? undefined : value,
+  2
+)
+
+// エクスポート時に数値を丸める
+const report = {
+  revenue: 1234567.89,
+  cost: 987654.321,
+  profit: 246913.569
+}
+
+const rounded = _.jsonStringify(
+  report,
+  (key, value) => typeof value === 'number' ? Math.round(value) : value,
+  2
+)
+// {
+//   "revenue": 1234568,
+//   "cost": 987654,
+//   "profit": 246914
+// }
+```
+
 ## React統合の注意事項
 
 ### なぜJSXでvalueOr/equalsOrを直接使用しないのか？

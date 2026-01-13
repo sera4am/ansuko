@@ -198,34 +198,63 @@ _.parseJSON({a:1})                        // {a:1} (pass-through)
 
 ---
 
-### jsonStringify(obj)
+### jsonStringify(obj, replacer?, space?)
 Stringifies objects/arrays; returns `null` for primitives. Normalizes JSON strings.
 
 **Category:** Conversion  
 **Parameters:**
 - `obj` (T): Object to stringify
+- `replacer` ((this: any, key: string, value: any) => any | undefined): Optional function to transform values during stringification
+- `space` (string | number | undefined): Optional indentation for pretty-printing (number of spaces or string)
 
 **Returns:** `string | null`
 
 **Logic:**
-- Objects/Arrays: `JSON.stringify()`
-- Strings: Attempt to parse as JSON5, then re-stringify (normalization)
+- Objects/Arrays: `JSON.stringify(obj, replacer, space)`
+- Strings: Attempt to parse as JSON5, then re-stringify with formatting (normalization)
 - Primitives: `null`
 
 **Examples:**
 ```typescript
-_.jsonStringify({a:1})        // '{"a":1}'
-_.jsonStringify([1,2,3])      // '[1,2,3]'
-_.jsonStringify('{a:1}')      // '{"a":1}' (normalized)
-_.jsonStringify('hello')      // null
-_.jsonStringify(42)           // null
-_.jsonStringify(null)         // null
+_.jsonStringify({a:1})                    // '{"a":1}'
+_.jsonStringify([1,2,3])                  // '[1,2,3]'
+_.jsonStringify('{a:1}')                  // '{"a":1}' (normalized)
+_.jsonStringify('hello')                  // null
+_.jsonStringify(42)                       // null
+_.jsonStringify(null)                     // null
+
+// With formatting (pretty-print)
+_.jsonStringify({a:1, b:2}, null, 2)
+// '{
+//   "a": 1,
+//   "b": 2
+// }'
+
+// With replacer function (filter/transform values)
+_.jsonStringify(
+  {name: 'Alice', password: 'secret123', age: 30},
+  (key, value) => key === 'password' ? undefined : value
+)
+// '{"name":"Alice","age":30}'
+
+// Combine replacer and formatting
+_.jsonStringify(
+  {id: 1, value: 999.999},
+  (key, value) => typeof value === 'number' ? Math.round(value) : value,
+  2
+)
+// '{
+//   "id": 1,
+//   "value": 1000
+// }'
 ```
 
 **Use Cases:**
 - Safe JSON serialization
 - Avoiding `JSON.stringify('string')` → `'"string"'` issue
-- Config file generation
+- Config file generation with pretty-printing
+- Filtering sensitive fields during serialization
+- Transforming values during JSON export
 
 ---
 

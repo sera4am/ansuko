@@ -210,34 +210,63 @@ _.parseJSON({a:1})                        // {a:1}（パススルー）
 
 ---
 
-### jsonStringify(obj)
+### jsonStringify(obj, replacer?, space?)
 オブジェクト/配列を文字列化します。プリミティブには `null` を返します。JSON文字列を正規化します。
 
 **カテゴリ:** 変換  
 **パラメータ:**
 - `obj` (T): 文字列化するオブジェクト
+- `replacer` ((this: any, key: string, value: any) => any | undefined): 文字列化中に値を変換するオプションの関数
+- `space` (string | number | undefined): 整形出力のためのオプションのインデント（スペース数または文字列）
 
 **返り値:** `string | null`
 
 **ロジック:**
-- オブジェクト/配列: `JSON.stringify()`
-- 文字列: JSON5としてパースを試行し、再文字列化（正規化）
+- オブジェクト/配列: `JSON.stringify(obj, replacer, space)`
+- 文字列: JSON5としてパースを試行し、フォーマット付きで再文字列化（正規化）
 - プリミティブ: `null`
 
 **例:**
 ```typescript
-_.jsonStringify({a:1})        // '{"a":1}'
-_.jsonStringify([1,2,3])      // '[1,2,3]'
-_.jsonStringify('{a:1}')      // '{"a":1}'（正規化）
-_.jsonStringify('hello')      // null
-_.jsonStringify(42)           // null
-_.jsonStringify(null)         // null
+_.jsonStringify({a:1})                    // '{"a":1}'
+_.jsonStringify([1,2,3])                  // '[1,2,3]'
+_.jsonStringify('{a:1}')                  // '{"a":1}'（正規化）
+_.jsonStringify('hello')                  // null
+_.jsonStringify(42)                       // null
+_.jsonStringify(null)                     // null
+
+// フォーマット付き（整形出力）
+_.jsonStringify({a:1, b:2}, null, 2)
+// '{
+//   "a": 1,
+//   "b": 2
+// }'
+
+// replacer関数で値をフィルタ・変換
+_.jsonStringify(
+  {name: 'Alice', password: 'secret123', age: 30},
+  (key, value) => key === 'password' ? undefined : value
+)
+// '{"name":"Alice","age":30}'
+
+// replacerとフォーマットを組み合わせ
+_.jsonStringify(
+  {id: 1, value: 999.999},
+  (key, value) => typeof value === 'number' ? Math.round(value) : value,
+  2
+)
+// '{
+//   "id": 1,
+//   "value": 1000
+// }'
 ```
 
 **ユースケース:**
 - 安全なJSONシリアライゼーション
 - `JSON.stringify('string')` → `'"string"'` 問題の回避
-- 設定ファイル生成
+- 整形出力付き設定ファイル生成
+- シリアライゼーション時のセンシティブフィールドのフィルタリング
+- JSONエクスポート時の値の変換
 
 ---
 

@@ -2,7 +2,7 @@
 
 実際のアプリケーションでansukoを使用するための実用的な例とパターン。
 
-[English](./Guide.md) | [日本語](./Guide.ja.md)
+[English](./Guide.md) | [日本語](./Guide.ja.md) | [简体中文](./Guide.zh.md)
 
 ## 目次
 

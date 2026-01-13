@@ -2,7 +2,7 @@
 
 Practical examples and patterns for using ansuko in real-world applications.
 
-[English](./Guide.md) | [日本語](./Guide.ja.md)
+[English](./Guide.md) | [日本語](./Guide.ja.md) | [简体中文](./Guide.zh.md)
 
 ## Table of Contents
 

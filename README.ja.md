@@ -3,7 +3,7 @@
 
 lodashを拡張した、実用的で直感的な動作を提供するモダンなJavaScript/TypeScriptユーティリティライブラリ。
 
-[English](./README.md) | [日本語](./README.ja.md)
+[English](./README.md) | [日本語](./README.ja.md) | [简体中文](./README.zh.md)
 
 ## インストール
 

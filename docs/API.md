@@ -2,7 +2,7 @@
 
 Complete API documentation for ansuko utility library.
 
-[English](./API.md) | [日本語](./API.ja.md)
+[English](./API.md) | [日本語](./API.ja.md) | [简体中文](./API.zh.md)
 
 
 ## Table of Contents

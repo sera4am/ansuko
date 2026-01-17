@@ -135,6 +135,52 @@ declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
  */
 declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions, finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>, notEmptyCallback?: ChangesAfterCallback<Record<string, any>>) => Record<string, any>;
 /**
+ * Executes a function and returns undefined if an error occurs.
+ * For functions returning a Promise, returns undefined if the Promise is rejected.
+ *
+ * @template T - The return type of the function
+ * @param fn - The function to execute
+ * @returns The result of the function execution, or undefined on error
+ *
+ * @example
+ * // Synchronous function
+ * ignore(() => data.remove() )
+ * // => undefined (error ignored)
+ *
+ * @example
+ * // Asynchronous function
+ * const data = await ignore(async () => await fetchData());
+ * // => data or undefined
+ */
+declare const ignore: <T>(fn: () => T) => T extends Promise<infer U> ? Promise<U | undefined> : T | undefined;
+/**
+ * Maps over an array, treating errors as undefined.
+ * When compact is true, filters out undefined results (errors).
+ *
+ * @template T - The array element type
+ * @template U - The function return type
+ * @param array - The array to process
+ * @param fn - The function to apply to each element
+ * @param compact - If true, filters out undefined results (errors) from the output
+ * @returns Array of results, or Promise of results for async functions
+ *
+ * @example
+ * // Keep errors as undefined
+ * const results = ignoreMap(items, item => processItem(item));
+ * // => [result1, undefined, result3, ...]
+ *
+ * @example
+ * // Filter out errors (compact)
+ * const results = ignoreMap(items, item => processItem(item), true);
+ * // => [result1, result3, ...]
+ *
+ * @example
+ * // Async processing
+ * const data = await ignoreMap(urls, async url => await fetch(url), true);
+ * // => array of successful responses only
+ */
+declare const ignoreMap: <T, U>(array: T[] | undefined | null, fn: (item: T, index: number) => U, compact?: boolean) => U extends Promise<infer V> ? Promise<V[]> : U[];
+/**
  * Returns nesting depth of arrays. Non-array: 0; empty array: 1. Uses minimum depth for mixed nesting.
  * @param ary - Array
  * @returns Depth
@@ -175,6 +221,8 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
     jsonStringify: typeof jsonStringify;
     castArray: typeof castArray;
     changes: typeof changes;
+    ignore: typeof ignore;
+    ignoreMap: typeof ignoreMap;
     size: typeof _.size;
     isNil: typeof _.isNil;
     debounce: typeof _.debounce;
@@ -195,4 +243,4 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
 }
 declare const _default: AnsukoType;
 export default _default;
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, ignore, ignoreMap, arrayDepth, };

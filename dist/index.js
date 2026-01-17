@@ -448,6 +448,82 @@ const changes = (sourceValue, currentValue, keys, options, finallyCallback, notE
     return diff;
 };
 /**
+ * Executes a function and returns undefined if an error occurs.
+ * For functions returning a Promise, returns undefined if the Promise is rejected.
+ *
+ * @template T - The return type of the function
+ * @param fn - The function to execute
+ * @returns The result of the function execution, or undefined on error
+ *
+ * @example
+ * // Synchronous function
+ * ignore(() => data.remove() )
+ * // => undefined (error ignored)
+ *
+ * @example
+ * // Asynchronous function
+ * const data = await ignore(async () => await fetchData());
+ * // => data or undefined
+ */
+const ignore = (fn) => {
+    try {
+        const result = fn();
+        if (result instanceof Promise) {
+            return result.catch(() => undefined);
+        }
+        return result;
+    }
+    catch {
+        return undefined;
+    }
+};
+/**
+ * Maps over an array, treating errors as undefined.
+ * When compact is true, filters out undefined results (errors).
+ *
+ * @template T - The array element type
+ * @template U - The function return type
+ * @param array - The array to process
+ * @param fn - The function to apply to each element
+ * @param compact - If true, filters out undefined results (errors) from the output
+ * @returns Array of results, or Promise of results for async functions
+ *
+ * @example
+ * // Keep errors as undefined
+ * const results = ignoreMap(items, item => processItem(item));
+ * // => [result1, undefined, result3, ...]
+ *
+ * @example
+ * // Filter out errors (compact)
+ * const results = ignoreMap(items, item => processItem(item), true);
+ * // => [result1, result3, ...]
+ *
+ * @example
+ * // Async processing
+ * const data = await ignoreMap(urls, async url => await fetch(url), true);
+ * // => array of successful responses only
+ */
+const ignoreMap = (array, fn, compact) => {
+    if (!array)
+        return [];
+    const results = array.map((item, index) => {
+        try {
+            const result = fn(item, index);
+            if (result instanceof Promise) {
+                return result.catch(() => undefined);
+            }
+            return result;
+        }
+        catch {
+            return undefined;
+        }
+    });
+    if (results.some(r => r instanceof Promise)) {
+        return Promise.all(results).then(resolved => compact ? resolved.filter(Boolean) : resolved);
+    }
+    return (compact ? results.filter(Boolean) : results);
+};
+/**
  * Returns nesting depth of arrays. Non-array: 0; empty array: 1. Uses minimum depth for mixed nesting.
  * @param ary - Array
  * @returns Depth
@@ -502,7 +578,9 @@ export default {
     jsonStringify,
     castArray,
     changes,
+    ignore,
+    ignoreMap,
     arrayDepth,
 };
 // 個別エクスポートはそのまま
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, ignore, ignoreMap, arrayDepth, };

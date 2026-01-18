@@ -457,15 +457,15 @@ const changes = (sourceValue, currentValue, keys, options, finallyCallback, notE
  *
  * @example
  * // Synchronous function
- * ignore(() => data.remove() )
+ * swallow(() => data.remove() )
  * // => undefined (error ignored)
  *
  * @example
  * // Asynchronous function
- * const data = await ignore(async () => await fetchData());
+ * const data = await swallow(async () => await fetchData());
  * // => data or undefined
  */
-const ignore = (fn) => {
+const swallow = (fn) => {
     try {
         const result = fn();
         if (result instanceof Promise) {
@@ -490,20 +490,20 @@ const ignore = (fn) => {
  *
  * @example
  * // Keep errors as undefined
- * const results = ignoreMap(items, item => processItem(item));
+ * const results = swallowMap(items, item => processItem(item));
  * // => [result1, undefined, result3, ...]
  *
  * @example
  * // Filter out errors (compact)
- * const results = ignoreMap(items, item => processItem(item), true);
+ * const results = swallowMap(items, item => processItem(item), true);
  * // => [result1, result3, ...]
  *
  * @example
  * // Async processing
- * const data = await ignoreMap(urls, async url => await fetch(url), true);
+ * const data = await swallowMap(urls, async url => await fetch(url), true);
  * // => array of successful responses only
  */
-const ignoreMap = (array, fn, compact) => {
+const swallowMap = (array, fn, compact) => {
     if (!array)
         return [];
     const results = array.map((item, index) => {
@@ -578,9 +578,9 @@ export default {
     jsonStringify,
     castArray,
     changes,
-    ignore,
-    ignoreMap,
+    swallow,
+    swallowMap,
     arrayDepth,
 };
 // 個別エクスポートはそのまま
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, ignore, ignoreMap, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, swallow, swallowMap, arrayDepth, };

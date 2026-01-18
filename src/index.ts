@@ -474,15 +474,15 @@ const changes = <T extends Record<string, any>, E extends Record<string, any>>(
  * 
  * @example
  * // Synchronous function
- * ignore(() => data.remove() )
+ * swallow(() => data.remove() )
  * // => undefined (error ignored)
  * 
  * @example
  * // Asynchronous function
- * const data = await ignore(async () => await fetchData());
+ * const data = await swallow(async () => await fetchData());
  * // => data or undefined
  */
-const ignore = <T>(fn: () => T): T extends Promise<infer U> ? Promise<U | undefined> : T | undefined => {
+const swallow = <T>(fn: () => T): T extends Promise<infer U> ? Promise<U | undefined> : T | undefined => {
     try {
         const result = fn();
         if (result instanceof Promise) {
@@ -507,20 +507,20 @@ const ignore = <T>(fn: () => T): T extends Promise<infer U> ? Promise<U | undefi
  * 
  * @example
  * // Keep errors as undefined
- * const results = ignoreMap(items, item => processItem(item));
+ * const results = swallowMap(items, item => processItem(item));
  * // => [result1, undefined, result3, ...]
  * 
  * @example
  * // Filter out errors (compact)
- * const results = ignoreMap(items, item => processItem(item), true);
+ * const results = swallowMap(items, item => processItem(item), true);
  * // => [result1, result3, ...]
  * 
  * @example
  * // Async processing
- * const data = await ignoreMap(urls, async url => await fetch(url), true);
+ * const data = await swallowMap(urls, async url => await fetch(url), true);
  * // => array of successful responses only
  */
-const ignoreMap = <T, U>(
+const swallowMap = <T, U>(
     array: T[] | undefined | null,
     fn: (item: T, index: number) => U,
     compact?: boolean
@@ -606,8 +606,8 @@ export interface AnsukoType extends Omit<_.LoDashStatic, "castArray" | "isEmpty"
     jsonStringify: typeof jsonStringify
     castArray: typeof castArray
     changes: typeof changes
-    ignore: typeof ignore
-    ignoreMap: typeof ignoreMap
+    swallow: typeof swallow
+    swallowMap: typeof swallowMap
     size: typeof _.size
     isNil: typeof _.isNil
     debounce: typeof _.debounce
@@ -648,8 +648,8 @@ export default {
     jsonStringify,
     castArray,
     changes,
-    ignore,
-    ignoreMap,
+    swallow,
+    swallowMap,
     arrayDepth,
 } as AnsukoType
 
@@ -666,7 +666,7 @@ export {
     jsonStringify,
     castArray,
     changes,
-    ignore,
-    ignoreMap,
+    swallow,
+    swallowMap,
     arrayDepth,
 }

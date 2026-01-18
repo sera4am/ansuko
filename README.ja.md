@@ -128,6 +128,10 @@ const diff = _.changes(
   updated, 
   ['name', 'email', 'profile.bio']
 )
+
+// try-catch不要のエラーハンドリング
+const result = _.swallow(() => riskyOperation())  // エラー時はundefined
+const items = _.swallowMap([1, 2, 3], item => processItem(item), true)  // エラーを除外
 ```
 
 ### プラグインの使用
@@ -209,6 +213,8 @@ extended.toPointGeoJson([139.7, 35.6])
 - **`hasOr`** - パスの存在確認、なければデフォルトを返す（深いパス & Promise対応）
 - **`equalsOr`** - Promise対応の比較とフォールバック、直感的なnil処理
 - **`changes`** - DB更新用のオブジェクト差分追跡（`profile.tags[1]` のような深いパス & 除外モード対応）
+- **`swallow`** - エラー時にundefinedを返す関数実行（同期/非同期対応）
+- **`swallowMap`** - エラーをundefinedとして扱う配列map（compactモードでエラー除外可）
 
 ### 型変換と検証
 
@@ -331,7 +337,7 @@ npm run build
 
 ## 開発
 
-Seraによって開発され、ドキュメント、コードレビュー、技術的な議論でClaude（Anthropic）の支援を受けました。
+テストとドキュメントが苦手なので、壁打ちとドキュメントにClaudeを使ってます。
 
 ## ライセンス
 

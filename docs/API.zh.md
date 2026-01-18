@@ -11,6 +11,7 @@ ansuko 实用工具库的完整 API 文档。
 - [类型守卫与验证](#类型守卫与验证)
 - [类型转换](#类型转换)
 - [Promise 工具](#promise-工具)
+- [错误处理](#错误处理)
 - [对象工具](#对象工具)
 - [数组工具](#数组工具)
 - [字符串工具](#字符串工具)
@@ -36,6 +37,16 @@ ansuko 实用工具库的完整 API 文档。
   在 N 个动画帧后运行（`requestAnimationFrame`）。  
   @category 核心函数  
   @example `_.waited(() => measure(), 1)`
+
+- **swallow(fn)**  
+  执行函数，如果发生错误则返回 undefined（同步/异步）。  
+  @category 核心函数  
+  @example `_.swallow(() => riskyOp()) // 出错时为 undefined`
+
+- **swallowMap(array, fn, compact?)**  
+  映射数组，将错误视为 undefined。如果 `compact` 为 true，则过滤掉错误。  
+  @category 核心函数  
+  @example `_.swallowMap(items, process, true) // 仅成功的结果`
 
 - **extend(plugin)**  
   应用插件并返回扩展后的实例。  
@@ -360,6 +371,141 @@ if (_.equalsOr(before, after, true) !== true) {
 - 条件 API 调用
 - "仅在更改时保存"逻辑
 - 条件确认对话框
+
+---
+
+## 错误处理
+
+### swallow(fn)
+执行函数，如果发生错误则返回 undefined。支持同步和异步函数。
+
+**分类：** 核心函数  
+**参数：**
+- `fn` (() => T)：要执行的函数
+
+**返回值：** `T | undefined`（异步函数返回 `Promise<T | undefined>`）
+
+**特性：**
+- 无需 try-catch
+- 支持同步和异步函数
+- 出错时返回 undefined（不抛出异常）
+- Promise 拒绝也变为 undefined
+
+**示例：**
+```typescript
+// 同步函数
+const result = _.swallow(() => riskyOperation())
+// => 结果或 undefined
+
+const data = _.swallow(() => deleteCache())
+// => undefined（错误被静默处理）
+
+// 异步函数
+const user = await _.swallow(async () => await fetchUser(id))
+// => 用户对象或 undefined
+
+const response = await _.swallow(() => fetch('/api/data'))
+// => Response 或 undefined
+
+// 安全的属性访问
+const value = _.swallow(() => obj.deep.nested.property)
+// => 值或 undefined（无"Cannot read property"错误）
+
+// 可选的清理操作
+_.swallow(() => cache.clear())
+_.swallow(() => ws.disconnect())
+```
+
+**使用场景：**
+- 可能失败的可选操作
+- 不应使应用崩溃的清理操作
+- 调用行为不确定的第三方库
+- 优雅降级
+
+---
+
+### swallowMap(array, fn, compact?)
+映射数组，将错误视为 undefined。当 compact 为 true 时，过滤掉 undefined 结果（错误）。
+
+**分类：** 核心函数  
+**参数：**
+- `array` (T[] | undefined | null)：要处理的数组
+- `fn` ((item: T, index: number) => U)：应用于每个元素的函数
+- `compact` (boolean = false)：如果为 true，过滤掉 undefined 结果（错误）
+
+**返回值：** `U[]`（异步函数返回 `Promise<U[]>`）
+
+**特性：**
+- 无需数组存在性检查（处理 null/undefined）
+- 单个错误不会中断整个操作
+- 可选的紧凑模式用于错误过滤
+- 支持同步和异步函数
+- 内部使用 Promise.all 处理异步操作
+
+**示例：**
+```typescript
+// 保留错误为 undefined
+const results = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+})
+// => [2, undefined, 6]
+
+// 过滤错误（compact）
+const validResults = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+}, true)
+// => [2, 6]
+
+// 异步处理
+const data = await _.swallowMap(
+  urls,
+  async url => {
+    const response = await fetch(url)
+    return response.json()
+  },
+  true  // 仅成功的请求
+)
+// => 仅成功响应的数组
+
+// 处理部分失败的项目
+const results = _.swallowMap(
+  items,
+  item => processComplexItem(item),
+  true
+)
+// => 仅成功处理的项目
+
+// 安全的 null/undefined 数组
+const items = _.swallowMap(maybeArray, item => process(item))
+// => 如果 maybeArray 为 null/undefined 则为 []
+
+// 容错的文件处理
+const processed = await _.swallowMap(
+  files,
+  async file => await processFile(file),
+  true
+)
+// => 仅成功处理的文件
+```
+
+**使用场景：**
+- 可接受部分失败的批处理操作
+- 数据导入/迁移（跳过无效记录）
+- 向多个端点发起 API 调用
+- 容错的文件处理
+- 从不可靠来源解析 JSON
+
+**模式：分离成功和失败**
+```typescript
+// 处理所有项目，跟踪成功和失败
+const results = _.swallowMap(items, item => processItem(item))
+const successes = results.filter(r => r !== undefined)
+const failureCount = results.length - successes.length
+
+console.log(`已处理：${successes.length}，失败：${failureCount}`)
+```
 
 ---
 

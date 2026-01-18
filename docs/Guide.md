@@ -14,6 +14,7 @@ Practical examples and patterns for using ansuko in real-world applications.
   - [Safe Array Operations](#safe-array-operations)
   - [Text Search and Comparison](#text-search-and-comparison)
   - [Database Updates](#database-updates)
+  - [Error Handling Without Try-Catch](#error-handling-without-try-catch)
   - [Japanese Address Forms](#japanese-address-form-normalization)
 - [Common Patterns](#common-patterns)
 - [Advanced Techniques](#advanced-patterns-with-valueor-and-equalsor)
@@ -296,6 +297,120 @@ const updates = _.changes(original, updated, [
   'profile.avatar'
   // Explicitly list what you want, excluding profile.privateNotes
 ])
+```
+
+### Error Handling Without Try-Catch
+
+Simplify error handling with `swallow` and `swallowMap`:
+
+```javascript
+// Traditional try-catch pattern - verbose
+async function loadUserData(userId) {
+  let profile
+  try {
+    profile = await fetchProfile(userId)
+  } catch (e) {
+    console.error('Failed to load profile:', e)
+    profile = null
+  }
+  
+  let settings
+  try {
+    settings = await fetchSettings(userId)
+  } catch (e) {
+    console.error('Failed to load settings:', e)
+    settings = null
+  }
+  
+  return { profile, settings }
+}
+
+// ansuko way - clean and concise
+async function loadUserData(userId) {
+  const profile = await _.swallow(() => fetchProfile(userId))
+  const settings = await _.swallow(() => fetchSettings(userId))
+  return { profile, settings }
+}
+
+// Even better: parallel fetching
+async function loadUserData(userId) {
+  const [profile, settings] = await Promise.all([
+    _.swallow(() => fetchProfile(userId)),
+    _.swallow(() => fetchSettings(userId))
+  ])
+  return { profile, settings }
+}
+```
+
+**Batch operations with error tolerance:**
+
+```javascript
+// Process multiple files, skip failures
+const files = ['file1.json', 'file2.json', 'file3.json']
+
+// Before: complex error handling
+const results = []
+for (const file of files) {
+  try {
+    const content = await fs.readFile(file, 'utf8')
+    const parsed = _.parseJSON(content)  // use ansuko's parseJSON
+    results.push(parsed)
+  } catch (e) {
+    console.error(`Failed to read ${file}:`, e)
+    // Skip failed files
+  }
+}
+
+// After: clean with swallowMap
+const results = await _.swallowMap(
+  files,
+  async file => {
+    const content = await fs.readFile(file, 'utf8')
+    return _.parseJSON(content)  // use ansuko's parseJSON
+  },
+  true  // compact: filter out errors (including read errors)
+)
+
+// Data migration with progress tracking
+const total = records.length
+const migrated = await _.swallowMap(
+  records,
+  async (record, index) => {
+    console.log(`Processing ${index + 1}/${total}`)
+    return await migrateRecord(record)
+  },
+  true
+)
+console.log(`Successfully migrated: ${migrated.length}/${total}`)
+
+// API batch requests
+const userIds = [1, 2, 3, 4, 5]
+const users = await _.swallowMap(
+  userIds,
+  async id => {
+    const response = await fetch(`/api/users/${id}`)
+    return response.json()
+  },
+  true  // only successful fetches
+)
+```
+
+**Safe optional operations:**
+
+```javascript
+// Cleanup operations that shouldn't crash
+function cleanup() {
+  _.swallow(() => cache.clear())
+  _.swallow(() => ws.disconnect())
+  _.swallow(() => analytics.track('cleanup'))
+}
+
+// Safe property access
+const userName = _.swallow(() => user.profile.displayName)
+// No "Cannot read property 'displayName' of undefined" error
+
+// Safe DOM operations
+const height = _.swallow(() => element.getBoundingClientRect().height)
 ```
 
 ### Form Validation with Defaults

@@ -101,6 +101,8 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`hasOr`** - 检查路径是否存在，如果缺失则返回默认值（支持深度路径和 Promise）
 - **`equalsOr`** - 比较并后备，具有直观的 nil 处理（支持 Promise）
 - **`changes`** - 跟踪对象差异用于数据库更新（支持深度路径如 `profile.tags[1]` 和排除模式）
+- **`swallow`** - 执行函数，出错时返回 undefined（同步/异步支持）
+- **`swallowMap`** - 映射数组，将错误视为 undefined（可选紧凑模式过滤错误）
 
 ### 类型转换与验证
 
@@ -202,6 +204,10 @@ const diff = _.changes(
   updated, 
   ['name', 'email', 'profile.bio']
 )
+
+// 无需 try-catch 的错误处理
+const result = _.swallow(() => riskyOperation())  // 出错时为 undefined
+const items = _.swallowMap([1, 2, 3], item => processItem(item), true)  // 过滤错误
 ```
 
 ### 使用插件

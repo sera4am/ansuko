@@ -14,6 +14,7 @@
   - [安全数组操作](#安全数组操作)
   - [文本搜索和比较](#文本搜索和比较)
   - [数据库更新](#数据库更新)
+  - [无需 try-catch 的错误处理](#无需-try-catch-的错误处理)
   - [日文地址表单](#日文地址表单标准化)
 - [常用模式](#常用模式)
 - [高级技术](#使用-valueor-和-equalsor-的高级模式)
@@ -296,6 +297,120 @@ const updates = _.changes(original, updated, [
   'profile.avatar'
   // 明确列出您想要的内容，排除 profile.privateNotes
 ])
+```
+
+### 无需 try-catch 的错误处理
+
+使用 `swallow` 和 `swallowMap` 简化错误处理：
+
+```javascript
+// 传统的 try-catch 模式 - 冗长
+async function loadUserData(userId) {
+  let profile
+  try {
+    profile = await fetchProfile(userId)
+  } catch (e) {
+    console.error('加载个人资料失败：', e)
+    profile = null
+  }
+  
+  let settings
+  try {
+    settings = await fetchSettings(userId)
+  } catch (e) {
+    console.error('加载设置失败：', e)
+    settings = null
+  }
+  
+  return { profile, settings }
+}
+
+// ansuko 方式 - 简洁明了
+async function loadUserData(userId) {
+  const profile = await _.swallow(() => fetchProfile(userId))
+  const settings = await _.swallow(() => fetchSettings(userId))
+  return { profile, settings }
+}
+
+// 更好的方式：并行获取
+async function loadUserData(userId) {
+  const [profile, settings] = await Promise.all([
+    _.swallow(() => fetchProfile(userId)),
+    _.swallow(() => fetchSettings(userId))
+  ])
+  return { profile, settings }
+}
+```
+
+**容错的批处理操作：**
+
+```javascript
+// 处理多个文件，跳过失败
+const files = ['file1.json', 'file2.json', 'file3.json']
+
+// 之前：复杂的错误处理
+const results = []
+for (const file of files) {
+  try {
+    const content = await fs.readFile(file, 'utf8')
+    const parsed = _.parseJSON(content)  // 使用 ansuko 的 parseJSON
+    results.push(parsed)
+  } catch (e) {
+    console.error(`读取 ${file} 失败：`, e)
+    // 跳过失败的文件
+  }
+}
+
+// 之后：使用 swallowMap 简洁处理
+const results = await _.swallowMap(
+  files,
+  async file => {
+    const content = await fs.readFile(file, 'utf8')
+    return _.parseJSON(content)  // 使用 ansuko 的 parseJSON
+  },
+  true  // compact：过滤错误（包括读取错误）
+)
+
+// 带进度跟踪的数据迁移
+const total = records.length
+const migrated = await _.swallowMap(
+  records,
+  async (record, index) => {
+    console.log(`处理中 ${index + 1}/${total}`)
+    return await migrateRecord(record)
+  },
+  true
+)
+console.log(`迁移成功：${migrated.length}/${total}`)
+
+// API 批量请求
+const userIds = [1, 2, 3, 4, 5]
+const users = await _.swallowMap(
+  userIds,
+  async id => {
+    const response = await fetch(`/api/users/${id}`)
+    return response.json()
+  },
+  true  // 仅成功的请求
+)
+```
+
+**安全的可选操作：**
+
+```javascript
+// 不应使应用崩溃的清理操作
+function cleanup() {
+  _.swallow(() => cache.clear())
+  _.swallow(() => ws.disconnect())
+  _.swallow(() => analytics.track('cleanup'))
+}
+
+// 安全的属性访问
+const userName = _.swallow(() => user.profile.displayName)
+// 无"Cannot read property 'displayName' of undefined"错误
+
+// 安全的 DOM 操作
+const height = _.swallow(() => element.getBoundingClientRect().height)
 ```
 
 ### 带默认值的表单验证

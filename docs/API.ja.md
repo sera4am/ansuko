@@ -10,6 +10,7 @@ ansukoユーティリティライブラリの完全なAPIドキュメント。
 - [型ガード・バリデーション](#型ガードバリデーション)
 - [型変換](#型変換)
 - [Promiseユーティリティ](#promiseユーティリティ)
+- [エラーハンドリング](#エラーハンドリング)
 - [オブジェクトユーティリティ](#オブジェクトユーティリティ)
 - [配列ユーティリティ](#配列ユーティリティ)
 - [文字列ユーティリティ](#文字列ユーティリティ)
@@ -43,6 +44,22 @@ N個のアニメーションフレーム後に実行します（`requestAnimatio
 
 **カテゴリ:** コア関数  
 **例:** `_.waited(() => measure(), 1)`
+
+---
+
+### swallow(fn)
+関数を実行し、エラーが発生した場合はundefinedを返します（同期/非同期対応）。
+
+**カテゴリ:** コア関数  
+**例:** `_.swallow(() => riskyOp()) // エラー時はundefined`
+
+---
+
+### swallowMap(array, fn, compact?)
+配列をマップし、エラーをundefinedとして扱います。`compact`がtrueの場合、エラーを除外します。
+
+**カテゴリ:** コア関数  
+**例:** `_.swallowMap(items, process, true) // 成功した結果のみ`
 
 ---
 
@@ -455,6 +472,141 @@ await _.equalsOr(
 - フォールバック付きステータスチェック
 - 確認ダイアログ
 - 変更検出
+
+---
+
+## エラーハンドリング
+
+### swallow(fn)
+関数を実行し、エラーが発生した場合はundefinedを返します。同期・非同期どちらの関数にも対応。
+
+**カテゴリ:** コア関数  
+**パラメータ:**
+- `fn` (() => T): 実行する関数
+
+**返り値:** `T | undefined`（非同期関数の場合は `Promise<T | undefined>`）
+
+**特徴:**
+- try-catchが不要
+- 同期・非同期両方の関数に対応
+- エラー時はundefinedを返す（例外を投げない）
+- Promiseのrejectもundefinedになる
+
+**例:**
+```typescript
+// 同期関数
+const result = _.swallow(() => riskyOperation())
+// => 結果 または undefined
+
+const data = _.swallow(() => deleteCache())
+// => undefined（エラーは静かに処理される）
+
+// 非同期関数
+const user = await _.swallow(async () => await fetchUser(id))
+// => userオブジェクト または undefined
+
+const response = await _.swallow(() => fetch('/api/data'))
+// => Response または undefined
+
+// 安全なプロパティアクセス
+const value = _.swallow(() => obj.deep.nested.property)
+// => 値 または undefined（"Cannot read property" エラーなし）
+
+// オプションのクリーンアップ処理
+_.swallow(() => cache.clear())
+_.swallow(() => ws.disconnect())
+```
+
+**ユースケース:**
+- 失敗しても構わないオプション処理
+- アプリをクラッシュさせたくないクリーンアップ処理
+- 挙動が不確実なサードパーティライブラリの呼び出し
+- グレースフルデグラデーション
+
+---
+
+### swallowMap(array, fn, compact?)
+配列をマップし、エラーをundefinedとして扱います。compactがtrueの場合、undefined結果（エラー）を除外します。
+
+**カテゴリ:** コア関数  
+**パラメータ:**
+- `array` (T[] | undefined | null): 処理する配列
+- `fn` ((item: T, index: number) => U): 各要素に適用する関数
+- `compact` (boolean = false): trueの場合、undefined結果（エラー）を除外
+
+**返り値:** `U[]`（非同期関数の場合は `Promise<U[]>`）
+
+**特徴:**
+- 配列の存在チェック不要（null/undefinedを処理）
+- 個別のエラーで全体の処理が止まらない
+- compactモードでオプションのエラーフィルタリング
+- 同期・非同期両方の関数に対応
+- 非同期処理には内部でPromise.allを使用
+
+**例:**
+```typescript
+// エラーをundefinedとして保持
+const results = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+})
+// => [2, undefined, 6]
+
+// エラーを除外（compact）
+const validResults = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+}, true)
+// => [2, 6]
+
+// 非同期処理
+const data = await _.swallowMap(
+  urls,
+  async url => {
+    const response = await fetch(url)
+    return response.json()
+  },
+  true  // 成功したfetchのみ
+)
+// => 成功したレスポンスの配列のみ
+
+// 一部失敗するアイテムの処理
+const results = _.swallowMap(
+  items,
+  item => processComplexItem(item),
+  true
+)
+// => 成功した処理結果のみ
+
+// null/undefined配列の安全な処理
+const items = _.swallowMap(maybeArray, item => process(item))
+// => maybeArrayがnull/undefinedの場合は []
+
+// エラー許容のファイル処理
+const processed = await _.swallowMap(
+  files,
+  async file => await processFile(file),
+  true
+)
+// => 成功したファイルのみ
+```
+
+**ユースケース:**
+- 一部の失敗が許容されるバッチ処理
+- データインポート/マイグレーション（無効なレコードをスキップ）
+- 複数エンドポイントへのAPI呼び出し
+- エラー許容のファイル処理
+- 信頼できないソースからのJSON解析
+
+**パターン: 成功と失敗を分ける**
+```typescript
+// すべてのアイテムを処理し、成功と失敗の両方を追跡
+const results = _.swallowMap(items, item => processItem(item))
+const successes = results.filter(r => r !== undefined)
+const failureCount = results.length - successes.length
+
+console.log(`処理完了: ${successes.length}, 失敗: ${failureCount}`)
+```
 
 ---
 

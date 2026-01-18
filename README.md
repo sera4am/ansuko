@@ -102,6 +102,8 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`hasOr`** - Check if paths exist, return default if missing (supports deep paths & Promises)
 - **`equalsOr`** - Compare and fallback with intuitive nil handling (Promises supported)
 - **`changes`** - Track object differences for DB updates (supports deep paths like `profile.tags[1]` & excludes mode)
+- **`swallow`** - Execute function and return undefined on error (sync/async)
+- **`swallowMap`** - Map over array, treating errors as undefined (with optional compact mode)
 
 ### Type Conversion & Validation
 
@@ -203,6 +205,10 @@ const diff = _.changes(
   updated, 
   ['name', 'email', 'profile.bio']
 )
+
+// Error handling without try-catch
+const result = _.swallow(() => riskyOperation())  // undefined on error
+const items = _.swallowMap([1, 2, 3], item => processItem(item), true)  // filter errors
 ```
 
 ### Using Plugins

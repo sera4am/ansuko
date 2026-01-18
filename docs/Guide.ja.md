@@ -14,6 +14,7 @@
   - [安全な配列操作](#安全な配列操作)
   - [テキスト検索と比較](#テキスト検索と比較)
   - [データベース更新](#データベース更新)
+  - [try-catch不要のエラーハンドリング](#try-catch不要のエラーハンドリング)
   - [日本語住所フォーム](#日本語住所フォームの正規化)
 - [共通パターン](#共通パターン)
 - [高度なテクニック](#valueorとequalsの高度なパターン)
@@ -296,6 +297,120 @@ const updates = _.changes(original, updated, [
   'profile.avatar'
   // profile.privateNotesを除外するために、必要なものを明示的にリスト
 ])
+```
+
+### try-catch不要のエラーハンドリング
+
+`swallow`と`swallowMap`でエラーハンドリングを簡潔に:
+
+```javascript
+// 従来のtry-catchパターン - 冗長
+async function loadUserData(userId) {
+  let profile
+  try {
+    profile = await fetchProfile(userId)
+  } catch (e) {
+    console.error('プロフィール読み込み失敗:', e)
+    profile = null
+  }
+  
+  let settings
+  try {
+    settings = await fetchSettings(userId)
+  } catch (e) {
+    console.error('設定読み込み失敗:', e)
+    settings = null
+  }
+  
+  return { profile, settings }
+}
+
+// ansukoの方法 - クリーンで簡潔
+async function loadUserData(userId) {
+  const profile = await _.swallow(() => fetchProfile(userId))
+  const settings = await _.swallow(() => fetchSettings(userId))
+  return { profile, settings }
+}
+
+// さらに良い方法: 並列取得
+async function loadUserData(userId) {
+  const [profile, settings] = await Promise.all([
+    _.swallow(() => fetchProfile(userId)),
+    _.swallow(() => fetchSettings(userId))
+  ])
+  return { profile, settings }
+}
+```
+
+**エラー許容のバッチ処理:**
+
+```javascript
+// 複数ファイルを処理し、失敗をスキップ
+const files = ['file1.json', 'file2.json', 'file3.json']
+
+// 従来: 複雑なエラーハンドリング
+const results = []
+for (const file of files) {
+  try {
+    const content = await fs.readFile(file, 'utf8')
+    const parsed = _.parseJSON(content)  // ansukoのparseJSONを使用
+    results.push(parsed)
+  } catch (e) {
+    console.error(`${file}の読み込み失敗:`, e)
+    // 失敗したファイルをスキップ
+  }
+}
+
+// ansuko: swallowMapでクリーンに
+const results = await _.swallowMap(
+  files,
+  async file => {
+    const content = await fs.readFile(file, 'utf8')
+    return _.parseJSON(content)  // ansukoのparseJSONを使用
+  },
+  true  // compact: エラー（読み込みエラーを含む）を除外
+)
+
+// 進捗追跡付きデータマイグレーション
+const total = records.length
+const migrated = await _.swallowMap(
+  records,
+  async (record, index) => {
+    console.log(`処理中 ${index + 1}/${total}`)
+    return await migrateRecord(record)
+  },
+  true
+)
+console.log(`マイグレーション成功: ${migrated.length}/${total}`)
+
+// API一括リクエスト
+const userIds = [1, 2, 3, 4, 5]
+const users = await _.swallowMap(
+  userIds,
+  async id => {
+    const response = await fetch(`/api/users/${id}`)
+    return response.json()
+  },
+  true  // 成功したfetchのみ
+)
+```
+
+**安全なオプション処理:**
+
+```javascript
+// クラッシュさせたくないクリーンアップ処理
+function cleanup() {
+  _.swallow(() => cache.clear())
+  _.swallow(() => ws.disconnect())
+  _.swallow(() => analytics.track('cleanup'))
+}
+
+// 安全なプロパティアクセス
+const userName = _.swallow(() => user.profile.displayName)
+// "Cannot read property 'displayName' of undefined" エラーなし
+
+// 安全なDOM操作
+const height = _.swallow(() => element.getBoundingClientRect().height)
 ```
 
 ### デフォルト付きフォームバリデーション

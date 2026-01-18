@@ -11,6 +11,7 @@ Complete API documentation for ansuko utility library.
 - [Type Guards & Validation](#type-guards--validation)
 - [Type Conversion](#type-conversion)
 - [Promise Utilities](#promise-utilities)
+- [Error Handling](#error-handling)
 - [Object Utilities](#object-utilities)
 - [Array Utilities](#array-utilities)
 - [String Utilities](#string-utilities)
@@ -36,6 +37,16 @@ Complete API documentation for ansuko utility library.
   Runs after N animation frames (`requestAnimationFrame`).  
   @category Core Functions  
   @example `_.waited(() => measure(), 1)`
+
+- **swallow(fn)**  
+  Executes function and returns undefined if error occurs (sync/async).  
+  @category Core Functions  
+  @example `_.swallow(() => riskyOp()) // undefined on error`
+
+- **swallowMap(array, fn, compact?)**  
+  Maps over array, treating errors as undefined. If `compact` is true, filters out errors.  
+  @category Core Functions  
+  @example `_.swallowMap(items, process, true) // only successful results`
 
 - **extend(plugin)**  
   Apply a plugin and return the augmented instance.  
@@ -443,6 +454,141 @@ await _.equalsOr(
 - Status checking with fallback
 - Confirmation dialogs
 - Change detection
+
+---
+
+## Error Handling
+
+### swallow(fn)
+Executes a function and returns undefined if an error occurs. Works with both synchronous and asynchronous functions.
+
+**Category:** Core Functions  
+**Parameters:**
+- `fn` (() => T): Function to execute
+
+**Returns:** `T | undefined` (or `Promise<T | undefined>` for async functions)
+
+**Features:**
+- No try-catch needed
+- Handles both sync and async functions
+- Returns undefined on error (never throws)
+- Promise rejections become undefined
+
+**Examples:**
+```typescript
+// Synchronous function
+const result = _.swallow(() => riskyOperation())
+// => result or undefined
+
+const data = _.swallow(() => deleteCache())
+// => undefined (error silently handled)
+
+// Asynchronous function
+const user = await _.swallow(async () => await fetchUser(id))
+// => user object or undefined
+
+const response = await _.swallow(() => fetch('/api/data'))
+// => Response or undefined
+
+// Safe property access
+const value = _.swallow(() => obj.deep.nested.property)
+// => value or undefined (no "Cannot read property" error)
+
+// Optional cleanup operations
+_.swallow(() => cache.clear())
+_.swallow(() => ws.disconnect())
+```
+
+**Use Cases:**
+- Optional operations that may fail
+- Cleanup operations that shouldn't crash the app
+- Third-party library calls with uncertain behavior
+- Graceful degradation
+
+---
+
+### swallowMap(array, fn, compact?)
+Maps over an array, treating errors as undefined. When compact is true, filters out undefined results (errors).
+
+**Category:** Core Functions  
+**Parameters:**
+- `array` (T[] | undefined | null): Array to process
+- `fn` ((item: T, index: number) => U): Function to apply to each element
+- `compact` (boolean = false): If true, filters out undefined results (errors)
+
+**Returns:** `U[]` (or `Promise<U[]>` for async functions)
+
+**Features:**
+- No array existence check needed (handles null/undefined)
+- Individual errors don't break the entire operation
+- Optional error filtering with compact mode
+- Works with both sync and async functions
+- Promise.all used internally for async operations
+
+**Examples:**
+```typescript
+// Keep errors as undefined
+const results = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+})
+// => [2, undefined, 6]
+
+// Filter out errors (compact)
+const validResults = _.swallowMap([1, 2, 3], item => {
+  if (item === 2) throw new Error('fail')
+  return item * 2
+}, true)
+// => [2, 6]
+
+// Async processing
+const data = await _.swallowMap(
+  urls,
+  async url => {
+    const response = await fetch(url)
+    return response.json()
+  },
+  true  // only successful fetches
+)
+// => array of successful responses only
+
+// Process array with some failing items
+const results = _.swallowMap(
+  items,
+  item => processComplexItem(item),
+  true
+)
+// => only successfully processed items
+
+// Safe null/undefined array
+const items = _.swallowMap(maybeArray, item => process(item))
+// => [] if maybeArray is null/undefined
+
+// File processing with graceful failures
+const processed = await _.swallowMap(
+  files,
+  async file => await processFile(file),
+  true
+)
+// => only successfully processed files
+```
+
+**Use Cases:**
+- Batch operations where some failures are acceptable
+- Data import/migration (skip invalid records)
+- API calls to multiple endpoints
+- File processing with error tolerance
+- JSON parsing from unreliable sources
+
+**Pattern: Separate success and failures**
+```typescript
+// Process all items, track both success and failures
+const results = _.swallowMap(items, item => processItem(item))
+const successes = results.filter(Boolean)
+const failureCount = results.length - successes.length
+
+console.log(`Processed: ${successes.length}, Failed: ${failureCount}`)
+```
 
 ---
 

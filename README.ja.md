@@ -167,6 +167,17 @@ extended.toPointGeoJson({ lat: 35.6895, lng: 139.6917 })
 
 // 複数のポリゴンを結合
 const unified = extended.unionPolygon([polygon1, polygon2])
+
+// MapBoxユーティリティ
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings",
+  visibility: true
+})
+// => { "fill-color": "#ff0000", "source-layer": "buildings", "visibility": "visible" }
 ```
 
 #### Prototypeプラグイン
@@ -254,6 +265,8 @@ extended.toPointGeoJson([139.7, 35.6])
 - **`toMultiLineStringGeoJson`** - 複数の線をMultiLineStringに変換
 - **`unionPolygon`** - 複数のPolygon/MultiPolygonを単一のジオメトリに結合
 - **`parseToTerraDraw`** - GeoJSONをTerra Draw互換のフィーチャーに変換
+- **`mZoomInterpolate`** - ズームオブジェクトをMapBox補間式に変換
+- **`mProps`** - camelCaseプロパティをMapBox互換形式に変換（minzoom、visibilityなどの特殊ケースに対応）
 
 ### Prototype拡張（プラグイン: `ansuko/plugins/prototype`）
 

@@ -1073,6 +1073,120 @@ GeoJSONをTerra Draw互換のフィーチャーに変換します（自動生成
 
 ---
 
+### mZoomInterpolate(zoomValues, type?)
+シンプルなオブジェクトマッピングからMapBoxのズーム補間式を作成します。
+`{10: 1, 15: 5, 20: 10}` をMapBoxの補間配列形式に変換します。
+
+**パラメータ:**
+- `zoomValues` (Record<number, number>): ズームレベルと値のマッピングオブジェクト
+- `type` (string = "linear"): 補間タイプ: "linear"、"exponential"、または "cubic-bezier"
+
+**戻り値:** MapBox補間式配列
+
+**例:**
+```typescript
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mZoomInterpolate({ 12: 0.5, 18: 2 }, "exponential")
+// => ["interpolate", ["exponential"], ["zoom"], 12, 0.5, 18, 2]
+
+// MapBox(互換)レイヤーで使用
+map.addLayer({
+  id: "buildings",
+  type: "fill",
+  paint: {
+    "fill-opacity": extended.mZoomInterpolate({ 10: 0.3, 15: 0.8 })
+  }
+})
+```
+
+**なぜ使うのか？**
+MapBox style specificationのネイティブ構文は冗長で読みにくい:
+```typescript
+// ❌ 読みにくい
+["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+// ✅ 明確で直感的
+mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+```
+
+---
+
+### mProps(properties, excludeKeys?)
+camelCaseプロパティをMapBox互換形式に変換します。
+minzoom、maxzoom、tileSize、クラスタープロパティなどの特殊ケースを処理し、
+visibilityのブール値を "visible"/"none" に変換します。ネストされたオブジェクトと配列を再帰的に処理します。
+
+**パラメータ:**
+- `properties` (Record<string, any>): camelCaseプロパティを持つオブジェクト
+- `excludeKeys` (string[] = []): 変換から除外するキー（元のキーと値を保持）
+
+**戻り値:** MapBox互換の変換されたプロパティオブジェクト
+
+**例:**
+```typescript
+extended.mProps({
+  fillColor: "#ff0000",
+  fillOpacity: 0.5,
+  sourceLayer: "buildings"
+})
+// => { "fill-color": "#ff0000", "fill-opacity": 0.5, "source-layer": "buildings" }
+
+extended.mProps({ visibility: true })
+// => { visibility: "visible" }
+
+extended.mProps({ minZoom: 10, maxZoom: 20 })
+// => { minzoom: 10, maxzoom: 20 }
+
+// ネストされたオブジェクトも機能
+extended.mProps({
+  id: "buildings",
+  type: "fill",
+  sourceLayer: "buildings",
+  paint: {
+    fillColor: "#ff0000",
+    fillOpacity: 0.5
+  }
+})
+// => {
+//   id: "buildings",
+//   type: "fill",
+//   "source-layer": "buildings",
+//   paint: {
+//     "fill-color": "#ff0000",
+//     "fill-opacity": 0.5
+//   }
+// }
+```
+
+**特殊な変換:**
+- `minZoom/maxZoom` → `minzoom/maxzoom` (小文字)
+- `tileSize` → `tileSize` (保持)
+- `clusterRadius/clusterMaxZoom/clusterMinPoints/clusterProperties` → camelCaseで保持
+- `lineMetrics` → camelCaseで保持
+- `sourceLayer` → `source-layer` (kebab-case)
+- `visibility: true/false` → `visibility: "visible"/"none"`
+- その他のプロパティ → kebab-case
+
+**なぜ使うのか？**
+MapBox style specificationはkebab-caseプロパティを要求しますが、JavaScriptでは扱いにくい:
+```typescript
+// ❌ 面倒 - キーを引用符で囲む必要があり、IDEの自動補完も効かない
+{
+  "fill-color": "#ff0000",
+  "source-layer": "buildings"
+}
+
+// ✅ 自然なJavaScript
+mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings"
+})
+```
+
+---
+
 ## プラグインシステム
 
 ### extend(plugin)

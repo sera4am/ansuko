@@ -1055,6 +1055,120 @@ Converts GeoJSON to Terra Draw compatible features (with auto-generated UUIDs).
 
 ---
 
+### mZoomInterpolate(zoomValues, type?)
+Creates a MapBox-compatible zoom interpolation expression from a simple object mapping.
+Converts `{10: 1, 15: 5, 20: 10}` into MapBox's interpolation array format.
+
+**Parameters:**
+- `zoomValues` (Record<number, number>): Object mapping zoom levels to values
+- `type` (string = "linear"): Interpolation type: "linear", "exponential", or "cubic-bezier"
+
+**Returns:** MapBox interpolation expression array
+
+**Examples:**
+```typescript
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mZoomInterpolate({ 12: 0.5, 18: 2 }, "exponential")
+// => ["interpolate", ["exponential"], ["zoom"], 12, 0.5, 18, 2]
+
+// Use in MapBox layer
+map.addLayer({
+  id: "buildings",
+  type: "fill",
+  paint: {
+    "fill-opacity": extended.mZoomInterpolate({ 10: 0.3, 15: 0.8 })
+  }
+})
+```
+
+**Why use this?**
+MapBox's native syntax is verbose and hard to read:
+```typescript
+// ❌ Hard to read
+["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+// ✅ Clear and intuitive
+mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+```
+
+---
+
+### mProps(properties, excludeKeys?)
+Converts camelCase properties to MapBox-compatible format.
+Handles special cases like minzoom, maxzoom, tileSize, cluster properties, and converts
+visibility boolean to "visible"/"none". Recursively processes nested objects and arrays.
+
+**Parameters:**
+- `properties` (Record<string, any>): Object with camelCase properties
+- `excludeKeys` (string[] = []): Keys to exclude from conversion (keeps original key and value)
+
+**Returns:** Converted properties object compatible with MapBox
+
+**Examples:**
+```typescript
+extended.mProps({
+  fillColor: "#ff0000",
+  fillOpacity: 0.5,
+  sourceLayer: "buildings"
+})
+// => { "fill-color": "#ff0000", "fill-opacity": 0.5, "source-layer": "buildings" }
+
+extended.mProps({ visibility: true })
+// => { visibility: "visible" }
+
+extended.mProps({ minZoom: 10, maxZoom: 20 })
+// => { minzoom: 10, maxzoom: 20 }
+
+// Nested objects work too
+extended.mProps({
+  id: "buildings",
+  type: "fill",
+  sourceLayer: "buildings",
+  paint: {
+    fillColor: "#ff0000",
+    fillOpacity: 0.5
+  }
+})
+// => {
+//   id: "buildings",
+//   type: "fill",
+//   "source-layer": "buildings",
+//   paint: {
+//     "fill-color": "#ff0000",
+//     "fill-opacity": 0.5
+//   }
+// }
+```
+
+**Special Conversions:**
+- `minZoom/maxZoom` → `minzoom/maxzoom` (lowercase)
+- `tileSize` → `tileSize` (preserved)
+- `clusterRadius/clusterMaxZoom/clusterMinPoints/clusterProperties` → preserved as camelCase
+- `lineMetrics` → preserved as camelCase
+- `sourceLayer` → `source-layer` (kebab-case)
+- `visibility: true/false` → `visibility: "visible"/"none"`
+- All other properties → kebab-case
+
+**Why use this?**
+MapBox requires kebab-case properties which are awkward in JavaScript:
+```typescript
+// ❌ Annoying - must quote keys, no IDE autocomplete
+{
+  "fill-color": "#ff0000",
+  "source-layer": "buildings"
+}
+
+// ✅ Natural JavaScript
+mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings"
+})
+```
+
+---
+
 ## Plugin System
 
 ### extend(plugin)

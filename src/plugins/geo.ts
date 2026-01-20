@@ -25,6 +25,8 @@ export interface AnsukoGeoPluginExtension {
     toMultiPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.MultiPolygon | null
     toMultiLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.MultiLineString | null
     unionPolygon: (geo: any, digit?: number) => GeoJSON.Polygon | GeoJSON.MultiPolygon | null
+    mZoomInterpolate: (zoomValues: Record<number, number>, type?: string) => any
+    mProps: (properties: Record<string, any>, excludeKeys?: string[]) => Record<string, any>
 }
 
 const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginExtension => {
@@ -36,7 +38,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
      * Swaps order if lat/lng appear to be inverted. Returns null when invalid.
      * @internal
      */
-    const toLngLatArray = (coord: any, digit?: number): [lng:number, lat:number] | null => {
+    const toLngLatArray = (coord: any, digit?: number): [lng: number, lat: number] | null => {
         if (_.isNil(coord)) { return null }
         let tLat: any = null
         let tLng: any = null
@@ -515,6 +517,92 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         return features
     }
 
+    /**
+     * Creates a MapBox zoom interpolation expression from a simple object mapping.
+     * Converts `{10: 1, 15: 5, 20: 10}` into MapBox's interpolation array format.
+     * 
+     * @param zoomValues - Object mapping zoom levels to values
+     * @param type - Interpolation type: "linear", "exponential", or "cubic-bezier" (default: "linear")
+     * @returns MapBox interpolation expression array
+     * @example
+     * _.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+     * // Returns: ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+     * @example
+     * _.mZoomInterpolate({ 12: 0.5, 18: 2 }, "exponential")
+     * @category Geo Utilities
+     */
+    const mZoomInterpolate = (zoomValues: Record<number, number>, type: string = "linear") => {
+        let vals: number[] = []
+        Object.entries(zoomValues).sort((v1, v2) => {
+            return parseFloat(v1[0]) - parseFloat(v2[0])
+        }).map(([zoom, val]) => {
+            vals.push(parseFloat(zoom))
+            vals.push(val)
+        })
+
+        return [
+            "interpolate",
+            [type],
+            ["zoom"],
+            ...vals,
+        ]
+    }
+
+    /**
+     * Converts camelCase properties to MapBox-compatible format.
+     * Handles special cases like minzoom, maxzoom, tileSize, cluster properties, and converts
+     * visibility boolean to "visible"/"none". Recursively processes nested objects and arrays.
+     * 
+     * @param properties - Object with camelCase properties
+     * @param excludeKeys - Keys to exclude from conversion (keeps original key and value)
+     * @returns Converted properties object compatible with MapBox
+     * @example
+     * _.mProps({
+     *   fillColor: "#ff0000",
+     *   fillOpacity: 0.5,
+     *   sourceLayer: "buildings"
+     * })
+     * // Returns: { "fill-color": "#ff0000", "fill-opacity": 0.5, "source-layer": "buildings" }
+     * @example
+     * _.mProps({ visibility: true }) // Returns: { visibility: "visible" }
+     * @example
+     * _.mProps({ minZoom: 10, maxZoom: 20 }) // Returns: { minzoom: 10, maxzoom: 20 }
+     * @category Geo Utilities
+     */
+    const mProps = (properties: Record<string, any>, excludeKeys: string[] = []) => {
+        if (_.isEmpty(properties)) { return properties }
+        if (Array.isArray(properties)) {
+            return properties.map(p => mProps(p, excludeKeys))
+        }
+        if (typeof properties === "object") {
+            return Object.fromEntries(Object.entries(properties).map(([key, value]) => {
+                let newKey = key
+                const lKey = key.toLowerCase()
+                if (lKey === "minzoom") { newKey = "minzoom" }
+                else if (lKey === "maxzoom") { newKey = "maxzoom" }
+                else if (lKey === "tilesize") { newKey = "tileSize" }
+                else if (lKey === "clusterradius") { newKey = "clusterRadius" }
+                else if (lKey === "clustermaxzoom") { newKey = "clusterMaxZoom" }
+                else if (lKey === "clusterminpoints") { newKey = "clusterMinPoints" }
+                else if (lKey === "clusterproperties") { newKey = "clusterProperties" }
+                else if (lKey === "linemetrics") { newKey = "lineMetrics" }
+                else { newKey = _.kebabCase(newKey).toLowerCase() }
+
+                if (key === "visibility" && _.isBoolean(value)) {
+                    return ["visibility", value ? "visible" : "none"]
+                }
+                if (excludeKeys.includes(key) || excludeKeys.includes(newKey)) {
+                    return [key, value]
+                }
+                if (Array.isArray(value) || typeof value === "object") {
+                    value = mProps(value, excludeKeys)
+                }
+                return [newKey, value]
+            }))
+        }
+        return properties
+    }
+
     const a = ansuko as any
 
     a.toLngLatArray = toLngLatArray
@@ -527,6 +615,8 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     a.toMultiPolygonGeoJson = toMultiPolygonGeoJson
     a.unionPolygon = unionPolygon
     a.parseToTerraDraw = parseToTerraDraw
+    a.mZoomInterpolate = mZoomInterpolate
+    a.mProps = mProps
 
     return ansuko as T & AnsukoGeoPluginExtension
 }

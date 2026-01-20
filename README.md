@@ -143,6 +143,8 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`toMultiLineStringGeoJson`** - Convert multiple lines to MultiLineString
 - **`unionPolygon`** - Union multiple Polygon/MultiPolygon into single geometry
 - **`parseToTerraDraw`** - Convert GeoJSON to Terra Draw compatible features
+- **`mZoomInterpolate`** - Convert zoom object to MapBox interpolation expression
+- **`mProps`** - Convert camelCase properties to MapBox-compatible format (handles special cases like minzoom, visibility)
 
 ### Prototype Extensions (plugin: `ansuko/plugins/prototype`)
 
@@ -244,6 +246,17 @@ extended.toPointGeoJson({ lat: 35.6895, lng: 139.6917 })
 
 // Union multiple polygons
 const unified = extended.unionPolygon([polygon1, polygon2])
+
+// MapBox utilities
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings",
+  visibility: true
+})
+// => { "fill-color": "#ff0000", "source-layer": "buildings", "visibility": "visible" }
 ```
 
 #### Prototype Plugin

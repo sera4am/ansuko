@@ -922,6 +922,120 @@ const unified = extended.unionPolygon([poly1, poly2])
 
 ---
 
+### mZoomInterpolate(zoomValues, type?)
+从简单的对象映射创建 MapBox 缩放插值表达式。
+将 `{10: 1, 15: 5, 20: 10}` 转换为 MapBox 的插值数组格式。
+
+**参数：**
+- `zoomValues` (Record<number, number>): 缩放级别到值的映射对象
+- `type` (string = "linear"): 插值类型："linear"、"exponential" 或 "cubic-bezier"
+
+**返回值：** MapBox 插值表达式数组
+
+**示例：**
+```typescript
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mZoomInterpolate({ 12: 0.5, 18: 2 }, "exponential")
+// => ["interpolate", ["exponential"], ["zoom"], 12, 0.5, 18, 2]
+
+// 在 MapBox 图层中使用
+map.addLayer({
+  id: "buildings",
+  type: "fill",
+  paint: {
+    "fill-opacity": extended.mZoomInterpolate({ 10: 0.3, 15: 0.8 })
+  }
+})
+```
+
+**为什么使用它？**
+MapBOx 的原生语法冗长且难以阅读：
+```typescript
+// ❌ 难以阅读
+["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+// ✅ 清晰直观
+mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+```
+
+---
+
+### mProps(properties, excludeKeys?)
+将 camelCase 属性转换为 MapBox 兼容格式。
+处理特殊情况，如 minzoom、maxzoom、tileSize、集群属性，并将
+visibility 布尔值转换为 "visible"/"none"。递归处理嵌套对象和数组。
+
+**参数：**
+- `properties` (Record<string, any>): 具有 camelCase 属性的对象
+- `excludeKeys` (string[] = []): 要从转换中排除的键（保留原始键和值）
+
+**返回值：** 与 MapBox 兼容的转换属性对象
+
+**示例：**
+```typescript
+extended.mProps({
+  fillColor: "#ff0000",
+  fillOpacity: 0.5,
+  sourceLayer: "buildings"
+})
+// => { "fill-color": "#ff0000", "fill-opacity": 0.5, "source-layer": "buildings" }
+
+extended.mProps({ visibility: true })
+// => { visibility: "visible" }
+
+extended.mProps({ minZoom: 10, maxZoom: 20 })
+// => { minzoom: 10, maxzoom: 20 }
+
+// 嵌套对象也可以工作
+extended.mProps({
+  id: "buildings",
+  type: "fill",
+  sourceLayer: "buildings",
+  paint: {
+    fillColor: "#ff0000",
+    fillOpacity: 0.5
+  }
+})
+// => {
+//   id: "buildings",
+//   type: "fill",
+//   "source-layer": "buildings",
+//   paint: {
+//     "fill-color": "#ff0000",
+//     "fill-opacity": 0.5
+//   }
+// }
+```
+
+**特殊转换：**
+- `minZoom/maxZoom` → `minzoom/maxzoom`（小写）
+- `tileSize` → `tileSize`（保留）
+- `clusterRadius/clusterMaxZoom/clusterMinPoints/clusterProperties` → 保留为 camelCase
+- `lineMetrics` → 保留为 camelCase
+- `sourceLayer` → `source-layer`（kebab-case）
+- `visibility: true/false` → `visibility: "visible"/"none"`
+- 所有其他属性 → kebab-case
+
+**为什么使用它？**
+MapBox 需要 kebab-case 属性，这在 JavaScript 中很笨拙：
+```typescript
+// ❌ 烦人 - 必须引用键，没有 IDE 自动完成
+{
+  "fill-color": "#ff0000",
+  "source-layer": "buildings"
+}
+
+// ✅ 自然的 JavaScript
+mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings"
+})
+```
+
+---
+
 ## 插件系统
 
 ### extend(plugin)

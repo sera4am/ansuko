@@ -142,6 +142,8 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`toMultiLineStringGeoJson`** - 将多条线转换为 MultiLineString
 - **`unionPolygon`** - 将多个 Polygon/MultiPolygon 合并为单个几何
 - **`parseToTerraDraw`** - 将 GeoJSON 转换为 Terra Draw 兼容的要素
+- **`mZoomInterpolate`** - 将缩放对象转换为 MapBox 插值表达式
+- **`mProps`** - 将 camelCase 属性转换为 MapBox 兼容格式（处理 minzoom、visibility 等特殊情况）
 
 ### 原型扩展（插件：`ansuko/plugins/prototype`）
 
@@ -243,6 +245,17 @@ extended.toPointGeoJson({ lat: 35.6895, lng: 139.6917 })
 
 // 合并多个多边形
 const unified = extended.unionPolygon([polygon1, polygon2])
+
+// MapBox 工具
+extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+// => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
+
+extended.mProps({
+  fillColor: "#ff0000",
+  sourceLayer: "buildings",
+  visibility: true
+})
+// => { "fill-color": "#ff0000", "source-layer": "buildings", "visibility": "visible" }
 ```
 
 #### 原型插件

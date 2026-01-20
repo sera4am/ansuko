@@ -21,6 +21,8 @@ export interface AnsukoGeoPluginExtension {
     toMultiPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.MultiPolygon | null;
     toMultiLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.MultiLineString | null;
     unionPolygon: (geo: any, digit?: number) => GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
+    mZoomInterpolate: (zoomValues: Record<number, number>, type?: string) => any;
+    mProps: (properties: Record<string, any>, excludeKeys?: string[]) => Record<string, any>;
 }
 declare const ansukoGeoPlugin: <T extends AnsukoType>(ansuko: T) => T & AnsukoGeoPluginExtension;
 export default ansukoGeoPlugin;

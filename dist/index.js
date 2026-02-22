@@ -447,6 +447,12 @@ const changes = (sourceValue, currentValue, keys, options, finallyCallback, notE
     }
     return diff;
 };
+const strWrap = (value, wrapper, whenInvalid = undefined) => {
+    if (!isValidStr(value)) {
+        return whenInvalid;
+    }
+    return `${wrapper}${value}${wrapper}`;
+};
 /**
  * Executes a function and returns undefined if an error occurs.
  * For functions returning a Promise, returns undefined if the Promise is rejected.
@@ -564,6 +570,7 @@ export default {
     isEmptyOrg: _.isEmpty,
     toNumberOrg: _.toNumber,
     castArrayOrg: _.castArray,
+    strWrap,
     isEmpty,
     toNumber,
     toBool,
@@ -583,4 +590,4 @@ export default {
     arrayDepth,
 };
 // 個別エクスポートはそのまま
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, swallow, swallowMap, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, };

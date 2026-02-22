@@ -464,6 +464,11 @@ const changes = <T extends Record<string, any>, E extends Record<string, any>>(
     return diff
 }
 
+const strWrap = (value: string, wrapper: string, whenInvalid:any = undefined): string | null | undefined => {
+    if (!isValidStr(value)) { return whenInvalid }
+    return `${wrapper}${value}${wrapper}`
+}
+
 /**
  * Executes a function and returns undefined if an error occurs.
  * For functions returning a Promise, returns undefined if the Promise is rejected.
@@ -608,6 +613,7 @@ export interface AnsukoType {
     swallow: typeof swallow
     swallowMap: typeof swallowMap
     arrayDepth: typeof arrayDepth
+    strWrap: typeof strWrap
 
     // ansuko overridden functions (with original versions)
     isEmpty: typeof isEmpty
@@ -928,6 +934,7 @@ export default {
     isEmptyOrg: _.isEmpty,
     toNumberOrg: _.toNumber,
     castArrayOrg: _.castArray,
+    strWrap,
     isEmpty,
     toNumber,
     toBool,
@@ -960,6 +967,7 @@ export {
     jsonStringify,
     castArray,
     changes,
+    strWrap,
     swallow,
     swallowMap,
     arrayDepth,

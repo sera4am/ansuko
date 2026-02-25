@@ -395,6 +395,10 @@ const castArray = (value) => {
  */
 const changes = (sourceValue, currentValue, keys, options, finallyCallback, notEmptyCallback) => {
     const diff = {};
+    if (_.isEmpty(keys)) {
+        keys = [];
+        options = { ...options, keyExcludes: true };
+    }
     // keyExcludes時にdeep pathが指定されていたら警告
     if (options?.keyExcludes === true) {
         const hasDeepPath = keys.some(k => k.includes('.') || k.includes('['));

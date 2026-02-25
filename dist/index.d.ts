@@ -145,7 +145,7 @@ declare const castArray: <T>(value: T | T[] | null | undefined) => T[];
  * ) // => { profile:{ tags:{ 1:'c' } } }
  * @category Object Utilities
  */
-declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys: string[], options?: ChangesOptions, finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>, notEmptyCallback?: ChangesAfterCallback<Record<string, any>>) => Record<string, any>;
+declare const changes: <T extends Record<string, any>, E extends Record<string, any>>(sourceValue: T, currentValue: E, keys?: string[], options?: ChangesOptions, finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>, notEmptyCallback?: ChangesAfterCallback<Record<string, any>>) => Record<string, any>;
 declare const strWrap: (value: string, wrapper: string, whenInvalid?: any) => string | null | undefined;
 /**
  * Executes a function and returns undefined if an error occurs.

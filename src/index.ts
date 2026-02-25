@@ -398,16 +398,21 @@ const castArray = <T>(value: T | T[] | null | undefined): T[] => {
 const changes = <T extends Record<string, any>, E extends Record<string, any>>(
     sourceValue: T,
     currentValue: E,
-    keys: string[],
+    keys?: string[],
     options?: ChangesOptions,
     finallyCallback?: ChangesAfterFinallyCallback<Record<string, any>>,
     notEmptyCallback?: ChangesAfterCallback<Record<string, any>>
 ): Record<string, any> => {
     const diff: Record<string, any> = {}
 
+    if (_.isEmpty(keys)) {
+        keys = []
+        options = {...options, keyExcludes: true}
+    }
+
     // keyExcludes時にdeep pathが指定されていたら警告
     if (options?.keyExcludes === true) {
-        const hasDeepPath = keys.some(k => k.includes('.') || k.includes('['))
+        const hasDeepPath = keys!!.some(k => k.includes('.') || k.includes('['))
         if (hasDeepPath) {
             console.warn(
                 '[ansuko.changes] keyExcludes mode does not support deep paths. ' +
@@ -419,9 +424,9 @@ const changes = <T extends Record<string, any>, E extends Record<string, any>>(
     const targetKeys: string[] = options?.keyExcludes === true
         ? _.difference(
             _.uniq([...Object.keys(sourceValue), ...Object.keys(currentValue)]),
-            keys
+            keys!!
         )
-        : keys
+        : keys!!
 
     for (const key of targetKeys) {
         const v1 = options?.keyExcludes === true ? sourceValue[key] : _.get(sourceValue, key)

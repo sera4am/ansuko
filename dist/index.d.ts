@@ -55,7 +55,7 @@ declare const isEmpty: (value: unknown) => boolean;
  * @example toNumber('abc') // null
  * @category Core Functions
  */
-declare const toNumber: (value: unknown, toFixed?: number) => number | null;
+declare const toNumber: (value: unknown, toFixed: unknown) => number | null;
 /**
  * Converts various inputs to boolean. Numbers: 0 -> false, non-zero -> true.
  * Strings: 'true'|'t'|'y'|'yes'|'ok' -> true; 'false'|'f'|'n'|'no'|'ng' -> false.

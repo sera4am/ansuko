@@ -168,7 +168,7 @@ const isEmpty = (value: unknown): boolean => {
  * @example toNumber('abc') // null
  * @category Core Functions
  */
-const toNumber = (value: unknown, toFixed?:number): number | null => {
+const toNumber = (value: unknown, toFixed:unknown): number | null => {
     if (_.isNil(value)) { return null }
     if (_.isNumber(value)) { return value as number }
     if (isEmpty(value)) { return null }
@@ -179,8 +179,9 @@ const toNumber = (value: unknown, toFixed?:number): number | null => {
         v = _.toNumber(v)
     }
     if (_.isNaN(v)) { return null }
-    if (toFixed !== undefined) {
-        return parseFloat(v.toFixed(toFixed))
+    if (!_.isNil(toFixed)) {
+        const f = _.toNumber(toFixed)
+        return parseFloat(v.toFixed(f))
     }
     return v as number
 }

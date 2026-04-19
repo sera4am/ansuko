@@ -163,8 +163,9 @@ const toNumber = (value, toFixed) => {
     if (_.isNaN(v)) {
         return null;
     }
-    if (toFixed !== undefined) {
-        return parseFloat(v.toFixed(toFixed));
+    if (!_.isNil(toFixed)) {
+        const f = _.toNumber(toFixed);
+        return parseFloat(v.toFixed(f));
     }
     return v;
 };

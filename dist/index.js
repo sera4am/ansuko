@@ -160,12 +160,12 @@ const toNumber = (value, toFixed) => {
     else {
         v = _.toNumber(v);
     }
+    if (!_.isNaN(v) && !_.isNil(toFixed)) {
+        const f = _.toNumber(toFixed);
+        v = parseFloat(v.toFixed(f));
+    }
     if (_.isNaN(v)) {
         return null;
-    }
-    if (!_.isNil(toFixed)) {
-        const f = _.toNumber(toFixed);
-        return parseFloat(v.toFixed(f));
     }
     return v;
 };

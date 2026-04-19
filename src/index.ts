@@ -178,11 +178,11 @@ const toNumber = (value: unknown, toFixed?:unknown): number | null => {
     } else {
         v = _.toNumber(v)
     }
-    if (_.isNaN(v)) { return null }
-    if (!_.isNil(toFixed)) {
+    if (!_.isNaN(v) && !_.isNil(toFixed)) {
         const f = _.toNumber(toFixed)
-        return parseFloat(v.toFixed(f))
+        v = parseFloat(v.toFixed(f))
     }
+    if (_.isNaN(v)) { return null }
     return v as number
 }
 

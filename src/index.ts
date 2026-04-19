@@ -168,7 +168,7 @@ const isEmpty = (value: unknown): boolean => {
  * @example toNumber('abc') // null
  * @category Core Functions
  */
-const toNumber = (value: unknown, toFixed:unknown): number | null => {
+const toNumber = (value: unknown, toFixed?:unknown): number | null => {
     if (_.isNil(value)) { return null }
     if (_.isNumber(value)) { return value as number }
     if (isEmpty(value)) { return null }

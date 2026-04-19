@@ -107,7 +107,7 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 
 ### Type Conversion & Validation
 
-- **`toNumber`** - Parse numbers with comma/full-width support, returns `null` for invalid
+- **`toNumber`** - Parse numbers with comma/full-width support, optional `toFixed` rounding, returns `null` for invalid
 - **`toBool`** - Smart boolean conversion ("yes"/"no"/"true"/"false"/numbers) with configurable undetected handling
 - **`boolIf`** - Safe boolean conversion with fallback
 - **`isValidStr`** - Non-empty string validation

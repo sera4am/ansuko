@@ -158,14 +158,17 @@ const isEmpty = (value: unknown): boolean => {
 
 /**
  * Converts a value to number (full-width and comma aware). Returns null when invalid.
+ * Optionally rounds using Number.toFixed when `toFixed` is provided.
  * @param value - Value to convert
+ * @param toFixed - Fraction digits to round to (uses Number.toFixed)
  * @returns number or null
  * @example toNumber('1,234.5') // 1234.5
+ * @example toNumber('1,234.56', 1) // 1234.6
  * @example toNumber('１２３') // 123
  * @example toNumber('abc') // null
  * @category Core Functions
  */
-const toNumber = (value: unknown): number | null => {
+const toNumber = (value: unknown, toFixed?:number): number | null => {
     if (_.isNil(value)) { return null }
     if (_.isNumber(value)) { return value as number }
     if (isEmpty(value)) { return null }
@@ -175,7 +178,11 @@ const toNumber = (value: unknown): number | null => {
     } else {
         v = _.toNumber(v)
     }
-    return _.isNaN(v) ? null : v as number
+    if (_.isNaN(v)) { return null }
+    if (toFixed !== undefined) {
+        return parseFloat(v.toFixed(toFixed))
+    }
+    return v as number
 }
 
 /**

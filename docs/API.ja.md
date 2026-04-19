@@ -98,18 +98,21 @@ _.isValidStr([])          // false
 
 ## 型変換
 
-### toNumber(value)
+### toNumber(value, toFixed?)
 全角・カンマ対応で数値に変換します。無効な入力時は `null` を返します。
+`toFixed` を指定すると `Number.toFixed` で丸めます。
 
 **カテゴリ:** コア関数  
 **パラメータ:**
 - `value` (unknown): 変換する値
+- `toFixed` (number, optional): 小数点以下の丸め桁数
 
 **返り値:** `number | null`
 
 **機能:**
 - 全角数字に対応: `'１２３'` → `123`
 - カンマを削除: `'1,234.5'` → `1234.5`
+- 任意で丸め: `'1,234.56'` を `toFixed=1` で `1234.6`
 - 無効な入力には `null` を返す（`NaN` ではない）
 
 **例:**
@@ -117,6 +120,7 @@ _.isValidStr([])          // false
 _.toNumber('1,234')           // 1234
 _.toNumber('１２３')          // 123
 _.toNumber('1,234.5')         // 1234.5
+_.toNumber('1,234.56', 1)      // 1234.6
 _.toNumber('abc')             // null
 _.toNumber(null)              // null
 _.toNumber(42)                // 42

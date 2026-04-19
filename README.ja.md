@@ -229,7 +229,7 @@ extended.toPointGeoJson([139.7, 35.6])
 
 ### 型変換と検証
 
-- **`toNumber`** - カンマ・全角対応の数値パース、無効時は `null`
+- **`toNumber`** - カンマ・全角対応の数値パース、`toFixed` で丸め可、無効時は `null`
 - **`toBool`** - スマートな真偽値変換（"yes"/"no"/"true"/"false"/数値）、未検出時の動作を設定可能
 - **`boolIf`** - フォールバック付き安全な真偽値変換
 - **`isValidStr`** - 非空文字列検証

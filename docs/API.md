@@ -80,18 +80,21 @@ _.isValidStr([])          // false
 
 ## Type Conversion
 
-### toNumber(value)
+### toNumber(value, toFixed?)
 Converts values to numbers with full-width and comma support. Returns `null` for invalid inputs.
+When `toFixed` is provided, the result is rounded using `Number.toFixed`.
 
 **Category:** Core Functions  
 **Parameters:**
 - `value` (unknown): Value to convert
+- `toFixed` (number, optional): Fraction digits to round to
 
 **Returns:** `number | null`
 
 **Features:**
 - Handles full-width numbers: `'１２３'` → `123`
 - Removes commas: `'1,234.5'` → `1234.5`
+- Optional rounding: `'1,234.56'` with `toFixed=1` → `1234.6`
 - Returns `null` for invalid inputs (not `NaN`)
 
 **Examples:**
@@ -99,6 +102,7 @@ Converts values to numbers with full-width and comma support. Returns `null` for
 _.toNumber('1,234')           // 1234
 _.toNumber('１２３')          // 123
 _.toNumber('1,234.5')         // 1234.5
+_.toNumber('1,234.56', 1)      // 1234.6
 _.toNumber('abc')             // null
 _.toNumber(null)              // null
 _.toNumber(42)                // 42

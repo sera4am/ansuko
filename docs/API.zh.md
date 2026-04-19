@@ -80,18 +80,21 @@ _.isValidStr([])          // false
 
 ## 类型转换
 
-### toNumber(value)
+### toNumber(value, toFixed?)
 将值转换为数字，支持全角字符和逗号。对于无效输入返回 `null`。
+当传入 `toFixed` 时，使用 `Number.toFixed` 进行四舍五入。
 
 **分类：** 核心函数  
 **参数：**
 - `value` (unknown)：要转换的值
+- `toFixed` (number, optional)：小数位数
 
 **返回值：** `number | null`
 
 **特性：**
 - 处理全角数字：`'１２３'` → `123`
 - 移除逗号：`'1,234.5'` → `1234.5`
+- 可选四舍五入：`'1,234.56'` 配合 `toFixed=1` → `1234.6`
 - 对于无效输入返回 `null`（而非 `NaN`）
 
 **示例：**
@@ -99,6 +102,7 @@ _.isValidStr([])          // false
 _.toNumber('1,234')           // 1234
 _.toNumber('１２３')          // 123
 _.toNumber('1,234.5')         // 1234.5
+_.toNumber('1,234.56', 1)      // 1234.6
 _.toNumber('abc')             // null
 _.toNumber(null)              // null
 _.toNumber(42)                // 42

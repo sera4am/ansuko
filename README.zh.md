@@ -104,7 +104,7 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 
 ### 类型转换与验证
 
-- **`toNumber`** - 解析包含逗号、全角字符的数字，无效时返回null
+- **`toNumber`** - 解析包含逗号、全角字符的数字，可选 `toFixed` 四舍五入，无效时返回null
 - **`toBool`** - 智能布尔值转换（支持 "yes"/"no"/"true"/"false"/数字），可配置未检测到时的行为检测处理
 - **`boolIf`** - 带有回退机制的安全布尔值转换
 - **`isValidStr`** - 非空字符串验证

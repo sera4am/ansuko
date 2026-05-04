@@ -328,7 +328,7 @@ const equalsOr = <T, E>(...args: any[]): MaybePromise<T | E | null> => {
  * @example parseJSON('{a:1}') // {a:1} (JSON5)
  * @category Conversion
  */
-const parseJSON = <T = any>(str: string | object): T | null => {
+const parseJSON = <T = any>(str: string | object | null | undefined): T | null => {
     if (_.isNil(str)) { return null }
     if (typeof str === "object") {
         return str as T

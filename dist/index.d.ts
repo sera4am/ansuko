@@ -107,7 +107,7 @@ declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
  * @example parseJSON('{a:1}') // {a:1} (JSON5)
  * @category Conversion
  */
-declare const parseJSON: <T = any>(str: string | object) => T | null;
+declare const parseJSON: <T = any>(str: string | object | null | undefined) => T | null;
 /**
  * Stringifies objects/arrays; returns null for strings or numbers.
  * @param obj - Target object

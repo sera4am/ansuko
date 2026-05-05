@@ -1,4 +1,4 @@
-import _ from "lodash";
+import lodash from "lodash";
 import JSON5 from "json5";
 import { toHalfWidth } from "./util.js";
 /**
@@ -10,10 +10,10 @@ import { toHalfWidth } from "./util.js";
  * @category Type Guards
  */
 const isValidStr = (str) => {
-    if (_.isNil(str)) {
+    if (lodash.isNil(str)) {
         return false;
     }
-    if (_.isEmpty(str)) {
+    if (lodash.isEmpty(str)) {
         return false;
     }
     return typeof str === "string";
@@ -26,7 +26,7 @@ const valueOr = (value, els) => {
     // Promiseかチェック
     if (resolvedValue instanceof Promise) {
         return Promise.resolve(resolvedValue).then(res => {
-            if (_.isNil(res) || isEmpty(res)) {
+            if (lodash.isNil(res) || isEmpty(res)) {
                 if (typeof els === "function") {
                     return els();
                 }
@@ -35,7 +35,7 @@ const valueOr = (value, els) => {
             return res;
         });
     }
-    if (!_.isNil(resolvedValue) && !isEmpty(resolvedValue)) {
+    if (!lodash.isNil(resolvedValue) && !isEmpty(resolvedValue)) {
         return resolvedValue;
     }
     if (typeof els === "function") {
@@ -51,7 +51,7 @@ const emptyOr = (value, els) => {
     // Promiseかチェック
     if (resolvedValue instanceof Promise) {
         return Promise.resolve(resolvedValue).then(res => {
-            if (_.isNil(res) || isEmpty(res)) {
+            if (lodash.isNil(res) || isEmpty(res)) {
                 return null;
             }
             if (typeof els === "function") {
@@ -60,7 +60,7 @@ const emptyOr = (value, els) => {
             return els;
         });
     }
-    if (_.isNil(resolvedValue) || isEmpty(resolvedValue)) {
+    if (lodash.isNil(resolvedValue) || isEmpty(resolvedValue)) {
         return null;
     }
     if (typeof els === "function") {
@@ -87,9 +87,9 @@ const hasOr = (value, paths, els) => {
     const pathArray = Array.isArray(paths) ? paths : [paths];
     // パスが全て存在するかチェック
     const checkPaths = (val) => {
-        if (_.isNil(val) || isEmpty(val))
+        if (lodash.isNil(val) || isEmpty(val))
             return false;
-        return pathArray.every(path => _.has(val, path));
+        return pathArray.every(path => lodash.has(val, path));
     };
     // Promiseかチェック
     if (resolvedValue instanceof Promise) {
@@ -120,16 +120,16 @@ const hasOr = (value, paths, els) => {
  * @category Core Functions
  */
 const isEmpty = (value) => {
-    if (_.isNil(value)) {
+    if (lodash.isNil(value)) {
         return true;
     }
-    if (_.isNumber(value)) {
+    if (lodash.isNumber(value)) {
         return false;
     }
-    if (_.isBoolean(value)) {
+    if (lodash.isBoolean(value)) {
         return false;
     }
-    return _.isEmpty(value);
+    return lodash.isEmpty(value);
 };
 /**
  * Converts a value to number (full-width and comma aware). Returns null when invalid.
@@ -144,10 +144,10 @@ const isEmpty = (value) => {
  * @category Core Functions
  */
 const toNumber = (value, toFixed) => {
-    if (_.isNil(value)) {
+    if (lodash.isNil(value)) {
         return null;
     }
-    if (_.isNumber(value)) {
+    if (lodash.isNumber(value)) {
         return value;
     }
     if (isEmpty(value)) {
@@ -155,16 +155,16 @@ const toNumber = (value, toFixed) => {
     }
     let v = toHalfWidth(value);
     if (typeof v === "string" && v.trim().match(/^[0-9][0-9,.]*$/)) {
-        v = _.toNumber(v.trim().replace(/,/g, ""));
+        v = lodash.toNumber(v.trim().replace(/,/g, ""));
     }
     else {
-        v = _.toNumber(v);
+        v = lodash.toNumber(v);
     }
-    if (!_.isNaN(v) && !_.isNil(toFixed)) {
-        const f = _.toNumber(toFixed);
+    if (!lodash.isNaN(v) && !lodash.isNil(toFixed)) {
+        const f = lodash.toNumber(toFixed);
         v = parseFloat(v.toFixed(f));
     }
-    if (_.isNaN(v)) {
+    if (lodash.isNaN(v)) {
         return null;
     }
     return v;
@@ -180,16 +180,16 @@ const toNumber = (value, toFixed) => {
  * @category Core Functions
  */
 const toBool = (value, undetected = null) => {
-    if (_.isNil(value)) {
+    if (lodash.isNil(value)) {
         return false;
     }
     if (isEmpty(value)) {
         return false;
     }
-    if (_.isBoolean(value)) {
+    if (lodash.isBoolean(value)) {
         return value;
     }
-    if (_.isNumber(value)) {
+    if (lodash.isNumber(value)) {
         return value !== 0;
     }
     const n = toNumber(value);
@@ -231,10 +231,10 @@ const toBool = (value, undetected = null) => {
  * @category Core Functions
  */
 const boolIf = (value, defaultValue = false) => {
-    if (_.isBoolean(value)) {
+    if (lodash.isBoolean(value)) {
         return value;
     }
-    if (_.isNumber(value)) {
+    if (lodash.isNumber(value)) {
         return !!value;
     }
     return defaultValue;
@@ -286,10 +286,10 @@ const equalsOr = (...args) => {
             Promise.resolve(p1),
             Promise.resolve(p2)
         ]).then(([v1, v2]) => {
-            if (_.isNil(v1) && _.isNil(v2)) {
+            if (lodash.isNil(v1) && lodash.isNil(v2)) {
                 return null;
             }
-            if (_.isEqual(v1, v2)) {
+            if (lodash.isEqual(v1, v2)) {
                 return v1;
             }
             // elsの解決
@@ -301,10 +301,10 @@ const equalsOr = (...args) => {
     }
     else {
         // 同期処理ブランチ
-        if (_.isNil(p1) && _.isNil(p2)) {
+        if (lodash.isNil(p1) && lodash.isNil(p2)) {
             return null;
         }
-        if (_.isEqual(p1, p2)) {
+        if (lodash.isEqual(p1, p2)) {
             return p1;
         }
         // elsの解決
@@ -323,7 +323,7 @@ const equalsOr = (...args) => {
  * @category Conversion
  */
 const parseJSON = (str) => {
-    if (_.isNil(str)) {
+    if (lodash.isNil(str)) {
         return null;
     }
     if (typeof str === "object") {
@@ -347,7 +347,7 @@ const parseJSON = (str) => {
  * @category Conversion
  */
 const jsonStringify = (obj, replacer, space) => {
-    if (_.isNil(obj)) {
+    if (lodash.isNil(obj)) {
         return null;
     }
     if (typeof obj === "string") {
@@ -378,10 +378,10 @@ const jsonStringify = (obj, replacer, space) => {
  * @category Array Utilities
  */
 const castArray = (value) => {
-    if (_.isNil(value)) {
+    if (lodash.isNil(value)) {
         return [];
     }
-    return _.castArray(value);
+    return lodash.castArray(value);
 };
 /**
  * Computes differences between two objects. Supports deep paths. When `keyExcludes` is true,
@@ -405,7 +405,7 @@ const castArray = (value) => {
  */
 const changes = (sourceValue, currentValue, keys, options, finallyCallback, notEmptyCallback) => {
     const diff = {};
-    if (_.isEmpty(keys)) {
+    if (lodash.isEmpty(keys)) {
         keys = [];
         options = { ...options, keyExcludes: true };
     }
@@ -418,28 +418,28 @@ const changes = (sourceValue, currentValue, keys, options, finallyCallback, notE
         }
     }
     const targetKeys = options?.keyExcludes === true
-        ? _.difference(_.uniq([...Object.keys(sourceValue), ...Object.keys(currentValue)]), keys)
+        ? lodash.difference(lodash.uniq([...Object.keys(sourceValue), ...Object.keys(currentValue)]), keys)
         : keys;
     for (const key of targetKeys) {
-        const v1 = options?.keyExcludes === true ? sourceValue[key] : _.get(sourceValue, key);
-        const v2 = options?.keyExcludes === true ? currentValue[key] : _.get(currentValue, key);
-        if (_.isNil(v1) && _.isNil(v2))
+        const v1 = options?.keyExcludes === true ? sourceValue[key] : lodash.get(sourceValue, key);
+        const v2 = options?.keyExcludes === true ? currentValue[key] : lodash.get(currentValue, key);
+        if (lodash.isNil(v1) && lodash.isNil(v2))
             continue;
-        if (_.isNil(v1) || _.isNil(v2)) {
+        if (lodash.isNil(v1) || lodash.isNil(v2)) {
             if (options?.keyExcludes === true) {
                 diff[key] = v2 ?? null;
             }
             else {
-                _.set(diff, key, v2 ?? null);
+                lodash.set(diff, key, v2 ?? null);
             }
             continue;
         }
-        if (!_.isEqual(v1, v2)) {
+        if (!lodash.isEqual(v1, v2)) {
             if (options?.keyExcludes === true) {
                 diff[key] = v2 ?? null;
             }
             else {
-                _.set(diff, key, v2 ?? null);
+                lodash.set(diff, key, v2 ?? null);
             }
         }
     }
@@ -559,7 +559,7 @@ const arrayDepth = (ary) => {
     if (!Array.isArray(ary)) {
         return 0;
     }
-    if (_.size(ary) === 0) {
+    if (lodash.size(ary) === 0) {
         return 1;
     }
     return 1 + Math.min(...ary.map(arrayDepth));
@@ -568,7 +568,7 @@ const arrayDepth = (ary) => {
  * Extends ansuko with a plugin and returns the augmented instance.
  * @param plugin - Plugin function
  * @returns Extended instance
- * @example const extended = _.extend(jaPlugin)
+ * @example const extended = lodash.extend(jaPlugin)
  * @category Core Functions
  */
 const extend = function (plugin) {
@@ -578,12 +578,13 @@ const extend = function (plugin) {
     return this;
 };
 // Ansuko型へのキャストを外し、より安全な unknown as LoDashStatic に変更
-export default {
-    ..._,
+// 変数名を _ にすることで、VS Code の auto import 候補が `_` として表示される
+const _ = {
+    ...lodash,
     extend,
-    isEmptyOrg: _.isEmpty,
-    toNumberOrg: _.toNumber,
-    castArrayOrg: _.castArray,
+    isEmptyOrg: lodash.isEmpty,
+    toNumberOrg: lodash.toNumber,
+    castArrayOrg: lodash.castArray,
     strWrap,
     isEmpty,
     toNumber,
@@ -603,5 +604,6 @@ export default {
     swallowMap,
     arrayDepth,
 };
+export default _;
 // 個別エクスポートはそのまま
 export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, };

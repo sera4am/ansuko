@@ -15,13 +15,13 @@ if [ "${COMMENT}" != "-" ]; then
   git push
 fi
 
-case "${VERSION}"
+case "${VERSION}" in
   "major")
-    npm version major
+    npm version major ;;
   "minor")
-    npm version minor
+    npm version minor ;;
   *)
-    npm version patch
+    npm version patch ;;
 esac
 
 git push --tags

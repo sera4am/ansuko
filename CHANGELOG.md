@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/ansuko/commits/main).
 
-## [2.0.1]
+## [2.0.1] - 2026-05-08
 
 ### Added
 - `CHANGELOG.md` based on the [Keep a Changelog](https://keepachangelog.com/) format.

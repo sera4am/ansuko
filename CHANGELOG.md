@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/ansuko/commits/main).
 
+## [Unreleased]
+
 ## [2.0.1] - 2026-05-08
 
 ### Added
@@ -57,5 +59,6 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/sera4am/ansuko/releases/tag/v2.0.1
 [2.0.0]: https://github.com/sera4am/ansuko/releases/tag/v2.0.0

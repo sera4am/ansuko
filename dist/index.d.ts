@@ -209,6 +209,19 @@ declare const swallowMap: <T, U>(array: T[] | undefined | null, fn: (item: T, in
  * @category Array Utilities
  */
 declare const arrayDepth: (ary: unknown) => number;
+/**
+ * Validates whether the input is a syntactically valid email address.
+ * - Returns false for null/undefined/empty values.
+ * - Values containing leading/trailing spaces are treated as invalid.
+ * - Case-insensitive for the domain/local-part check.
+ * @param email - Value to validate
+ * @returns true if the input is a valid email format
+ * @example isValidEmail('user@example.com') // true
+ * @example isValidEmail(' user@example.com ') // false
+ * @example isValidEmail('not-an-email') // false
+ * @category Type Guards
+ */
+declare const isValidEmail: (email: unknown) => boolean;
 export type ChangesOptions = {
     keyExcludes?: boolean;
 };
@@ -238,6 +251,7 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
     swallowMap: typeof swallowMap;
     arrayDepth: typeof arrayDepth;
     strWrap: typeof strWrap;
+    isValidEmail: typeof isValidEmail;
     isEmpty: typeof isEmpty;
     toNumber: typeof toNumber;
     castArray: typeof castArray;
@@ -254,4 +268,4 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
 }
 declare const _: AnsukoType;
 export default _;
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };

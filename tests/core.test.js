@@ -13,6 +13,16 @@ describe('Core Functions', () => {
     expect(_.isValidStr(123)).toBe(false)
   })
 
+  it('isValidEmail', () => {
+    expect(_.isValidEmail('user@example.com')).toBe(true)
+    expect(_.isValidEmail('USER@EXAMPLE.COM')).toBe(true)
+    expect(_.isValidEmail(' user@example.com ')).toBe(false)
+    expect(_.isValidEmail('invalid-email')).toBe(false)
+    expect(_.isValidEmail('')).toBe(false)
+    expect(_.isValidEmail(null)).toBe(false)
+    expect(_.isValidEmail(undefined)).toBe(false)
+  })
+
   it('valueOr (sync)', () => {
     expect(_.valueOr('value', 'default')).toBe('value')
     expect(_.valueOr(null, 'default')).toBe('default')

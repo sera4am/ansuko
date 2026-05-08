@@ -1,5 +1,7 @@
 # ansuko
 
+[![Tests](https://github.com/sera4am/ansuko/actions/workflows/test.yml/badge.svg)](https://github.com/sera4am/ansuko/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/ansuko)](https://www.npmjs.com/package/ansuko)
 
 A modern JavaScript/TypeScript utility library that extends lodash with practical, intuitive behaviors.
 
@@ -111,6 +113,7 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`toBool`** - Smart boolean conversion ("yes"/"no"/"true"/"false"/numbers) with configurable undetected handling
 - **`boolIf`** - Safe boolean conversion with fallback
 - **`isValidStr`** - Non-empty string validation
+- **`isValidEmail`** - Email format validation (strict: values with surrounding spaces are invalid)
 
 ### JSON Processing
 
@@ -200,6 +203,10 @@ const value = await _.valueOr(
 
 // Safe JSON parsing
 const data = _.parseJSON('{ "a": 1, /* comment */ }')  // Works with JSON5!
+
+// Email validation
+_.isValidEmail('user@example.com')  // true
+_.isValidEmail(' user@example.com ') // false
 
 // Track object changes for database updates
 const diff = _.changes(

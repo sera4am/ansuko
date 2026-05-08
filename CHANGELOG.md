@@ -9,6 +9,12 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Added
+- Added `_.isValidEmail` for strict email format validation in core utilities.
+- Added documentation and examples for `_.isValidEmail` in README files.
+- Added GitHub Actions workflow (`test.yml`) to run the test suite on every push and pull request.
+- Added CI test status badge and npm version badge to all README files (EN/JA/ZH).
+
 ## [2.0.1] - 2026-05-08
 
 ### Added

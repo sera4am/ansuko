@@ -1,5 +1,8 @@
 # ansuko
 
+[![Tests](https://github.com/sera4am/ansuko/actions/workflows/test.yml/badge.svg)](https://github.com/sera4am/ansuko/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/ansuko)](https://www.npmjs.com/package/ansuko)
+
 在lodash基础上扩展、提供实用且直观易懂的现代JavaScript/TypeScript工具库。
 
 [English](./README.md) | [日本語](./README.ja.md) | [简体中文](./README.zh.md)
@@ -108,6 +111,7 @@ const value = _.equalsOr(a, b, defaultValue)  // null == undefined
 - **`toBool`** - 智能布尔值转换（支持 "yes"/"no"/"true"/"false"/数字），可配置未检测到时的行为检测处理
 - **`boolIf`** - 带有回退机制的安全布尔值转换
 - **`isValidStr`** - 非空字符串验证
+- **`isValidEmail`** - 邮箱格式校验（严格模式：前后包含空格视为无效）
 
 ### JSON 处理
 
@@ -195,6 +199,10 @@ const value = await _.valueOr(
 
 // 安全的 JSON 解析
 const data = _.parseJSON('{ "a": 1, /* 注释 */ }')  // 支持 JSON5！
+
+// 邮箱格式校验
+_.isValidEmail('user@example.com')   // true
+_.isValidEmail(' user@example.com ') // false
 
 // 跟踪对象更改以进行数据库更新
 const diff = _.changes(

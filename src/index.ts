@@ -1,4 +1,4 @@
-import lodash, { type LoDashStatic } from "lodash"
+import lodash, { isNil, type LoDashStatic } from "lodash"
 import JSON5 from "json5"
 import { toHalfWidth } from "./util.js"
 
@@ -586,6 +586,25 @@ const arrayDepth = (ary: unknown): number => {
     return 1 + Math.min(...(ary as []).map(arrayDepth))
 }
 
+/**
+ * Validates whether the input is a syntactically valid email address.
+ * - Returns false for null/undefined/empty values.
+ * - Values containing leading/trailing spaces are treated as invalid.
+ * - Case-insensitive for the domain/local-part check.
+ * @param email - Value to validate
+ * @returns true if the input is a valid email format
+ * @example isValidEmail('user@example.com') // true
+ * @example isValidEmail(' user@example.com ') // false
+ * @example isValidEmail('not-an-email') // false
+ * @category Type Guards
+ */
+const isValidEmail = (email: unknown): boolean => {
+    if (isEmpty(email)) { return false }
+    const str = String(email).toLowerCase()
+    if (isEmpty(str)) { return false }
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    return re.test(str)
+}
 
 export type ChangesOptions = {
     keyExcludes?: boolean
@@ -621,6 +640,7 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
     swallowMap: typeof swallowMap
     arrayDepth: typeof arrayDepth
     strWrap: typeof strWrap
+    isValidEmail: typeof isValidEmail
 
     // ansuko で挙動を上書きしている関数
     isEmpty: typeof isEmpty
@@ -665,6 +685,7 @@ const _ = {
     swallow,
     swallowMap,
     arrayDepth,
+    isValidEmail,
     __plugins: new Set<string>(),
 } as AnsukoType
 export default _
@@ -686,4 +707,5 @@ export {
     swallow,
     swallowMap,
     arrayDepth,
+    isValidEmail,
 }

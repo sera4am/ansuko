@@ -564,6 +564,29 @@ const arrayDepth = (ary) => {
     }
     return 1 + Math.min(...ary.map(arrayDepth));
 };
+/**
+ * Validates whether the input is a syntactically valid email address.
+ * - Returns false for null/undefined/empty values.
+ * - Values containing leading/trailing spaces are treated as invalid.
+ * - Case-insensitive for the domain/local-part check.
+ * @param email - Value to validate
+ * @returns true if the input is a valid email format
+ * @example isValidEmail('user@example.com') // true
+ * @example isValidEmail(' user@example.com ') // false
+ * @example isValidEmail('not-an-email') // false
+ * @category Type Guards
+ */
+const isValidEmail = (email) => {
+    if (isEmpty(email)) {
+        return false;
+    }
+    const str = String(email).toLowerCase();
+    if (isEmpty(str)) {
+        return false;
+    }
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(str);
+};
 // 変数名を _ にすることで、VS Code の auto import 候補が `_` として表示される
 const _ = {
     ...lodash,
@@ -588,8 +611,9 @@ const _ = {
     swallow,
     swallowMap,
     arrayDepth,
+    isValidEmail,
     __plugins: new Set(),
 };
 export default _;
 // 個別エクスポートはそのまま
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };

@@ -1,8 +1,8 @@
 import _ from '../dist/index.js'
-import geo from '../dist/plugins/geo.js'
+import '../dist/plugins/geo.js'
 import { describe, it, expect } from 'vitest'
 
-const ansuko = _.extend(geo)
+const ansuko = _
 
 describe('Geo Plugin', () => {
   it('toPointGeoJson', () => {

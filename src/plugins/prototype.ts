@@ -1,3 +1,5 @@
+import _ from "../index.js"
+
 declare global {
     interface Array<T> {
         /**
@@ -19,15 +21,18 @@ declare global {
     }
 }
 
+const PLUGIN_NAME = "prototype"
 
-const ansukoPrototypePlugin = (ansuko: any) => {
+if (!_.__plugins.has(PLUGIN_NAME)) {
+    _.__plugins.add(PLUGIN_NAME)
+
     Array.prototype.notMap = function <T>(this: T[], predicate: (item: T) => boolean): boolean[] {
-        return this.map(ansuko.negate(predicate))
+        return this.map(_.negate(predicate))
     }
 
     Array.prototype.notFilter = function <T>(this: T[], predicate: (item: T) => boolean): T[] {
-        return this.filter(ansuko.negate(predicate))
+        return this.filter(_.negate(predicate))
     }
 }
 
-export default ansukoPrototypePlugin
+export {}

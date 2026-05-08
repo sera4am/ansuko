@@ -1,8 +1,8 @@
 import _ from '../dist/index.js'
-import ja from '../dist/plugins/ja.js'
+import '../dist/plugins/ja.js'
 import { describe, it, expect } from 'vitest'
 
-const ansuko = _.extend(ja)
+const ansuko = _
 
 describe('JA Plugin', () => {
   it('kanaToFull', () => {

@@ -1,7 +1,6 @@
-
 import * as turf from "@turf/turf"
 import GeoJSON, { Geometry } from "geojson"
-import { type AnsukoType } from "../index.js"
+import _ from "../index.js"
 
 /**
  * Geometry type selector for conversions. Use `auto` to try higher dimensions first.
@@ -16,8 +15,15 @@ export enum GeomType {
     auto = "auto",
 }
 
+/**
+ * geo プラグインが ansuko に追加するメソッド群。
+ *
+ * このインターフェースは下記の `declare module` ブロックで `AnsukoType` に merge され、
+ * `import "ansuko/plugins/geo"` するだけで `_` の型が自動的に拡張される。
+ */
 export interface AnsukoGeoPluginExtension {
     toLngLatArray: (coord: any, digit?: number) => [lng: number, lat: number] | null
+    toGeoJson: (geo: any, type?: GeomType, digit?: number) => Geometry | null
     toPointGeoJson: (geo: any, digit?: number) => GeoJSON.Point | null
     toPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.Polygon | null
     toLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.LineString | null
@@ -25,13 +31,19 @@ export interface AnsukoGeoPluginExtension {
     toMultiPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.MultiPolygon | null
     toMultiLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.MultiLineString | null
     unionPolygon: (geo: any, digit?: number) => GeoJSON.Polygon | GeoJSON.MultiPolygon | null
+    parseToTerraDraw: (geo: any) => GeoJSON.Feature[]
     mZoomInterpolate: (zoomValues: Record<number, number>, type?: string) => any
     mProps: (properties: Record<string, any>, excludeKeys?: string[]) => Record<string, any>
 }
 
-const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginExtension => {
+declare module "../index.js" {
+    interface AnsukoType extends AnsukoGeoPluginExtension {}
+}
 
-    const _ = ansuko as AnsukoType
+const PLUGIN_NAME = "geo"
+
+if (!_.__plugins.has(PLUGIN_NAME)) {
+    _.__plugins.add(PLUGIN_NAME)
 
     /**
      * Converts a coordinate-like value to a [lng, lat] tuple, optionally rounding digits.
@@ -520,7 +532,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     /**
      * Creates a MapBox zoom interpolation expression from a simple object mapping.
      * Converts `{10: 1, 15: 5, 20: 10}` into MapBox's interpolation array format.
-     * 
+     *
      * @param zoomValues - Object mapping zoom levels to values
      * @param type - Interpolation type: "linear", "exponential", or "cubic-bezier" (default: "linear")
      * @returns MapBox interpolation expression array
@@ -552,7 +564,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
      * Converts camelCase properties to MapBox-compatible format.
      * Handles special cases like minzoom, maxzoom, tileSize, cluster properties, and converts
      * visibility boolean to "visible"/"none". Recursively processes nested objects and arrays.
-     * 
+     *
      * @param properties - Object with camelCase properties
      * @param excludeKeys - Keys to exclude from conversion (keeps original key and value)
      * @returns Converted properties object compatible with MapBox
@@ -603,8 +615,7 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
         return properties
     }
 
-    const a = ansuko as any
-
+    const a = _ as any
     a.toLngLatArray = toLngLatArray
     a.toGeoJson = toGeoJson
     a.toPointGeoJson = toPointGeoJson
@@ -617,9 +628,6 @@ const ansukoGeoPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoGeoPluginEx
     a.parseToTerraDraw = parseToTerraDraw
     a.mZoomInterpolate = mZoomInterpolate
     a.mProps = mProps
-
-    return ansuko as T & AnsukoGeoPluginExtension
 }
 
-export default ansukoGeoPlugin
-
+export {}

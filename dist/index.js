@@ -564,24 +564,9 @@ const arrayDepth = (ary) => {
     }
     return 1 + Math.min(...ary.map(arrayDepth));
 };
-/**
- * Extends ansuko with a plugin and returns the augmented instance.
- * @param plugin - Plugin function
- * @returns Extended instance
- * @example const extended = lodash.extend(jaPlugin)
- * @category Core Functions
- */
-const extend = function (plugin) {
-    if (typeof plugin === 'function') {
-        return plugin(this); // プラグインの戻り値をそのまま返す
-    }
-    return this;
-};
-// Ansuko型へのキャストを外し、より安全な unknown as LoDashStatic に変更
 // 変数名を _ にすることで、VS Code の auto import 候補が `_` として表示される
 const _ = {
     ...lodash,
-    extend,
     isEmptyOrg: lodash.isEmpty,
     toNumberOrg: lodash.toNumber,
     castArrayOrg: lodash.castArray,
@@ -603,6 +588,7 @@ const _ = {
     swallow,
     swallowMap,
     arrayDepth,
+    __plugins: new Set(),
 };
 export default _;
 // 個別エクスポートはそのまま

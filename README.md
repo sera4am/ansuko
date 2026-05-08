@@ -171,13 +171,13 @@ This means you only pay for what you use!
 import _ from 'ansuko'  // ~20KB
 
 // Add Japanese support when needed
-import jaPlugin from 'ansuko/plugins/ja'
-_.extend(jaPlugin)  // +5KB
+import 'ansuko/plugins/ja'  // +5KB (side-effect import)
 
 // Add GIS features for mapping apps
-import geoPlugin from 'ansuko/plugins/geo'
-_.extend(geoPlugin)  // +100KB
+import 'ansuko/plugins/geo'  // +100KB
 ```
+
+> **v2 Note**: Plugins are now loaded as side-effect imports. Just `import 'ansuko/plugins/<name>'` once and `_` is automatically augmented in both runtime and type system (via TypeScript's `declare module` merging). The legacy `_.extend(plugin)` API has been removed in v2 — see [Migration from v1](#migration-from-v1) below.
 
 ## Quick Start
 
@@ -219,9 +219,7 @@ const items = _.swallowMap([1, 2, 3], item => processItem(item), true)  // filte
 
 ```typescript
 import _ from 'ansuko'
-import jaPlugin from 'ansuko/plugins/ja'
-
-_.extend(jaPlugin)
+import 'ansuko/plugins/ja'
 
 _.kanaToFull('ｶﾞｷﾞ')              // 'ガギ'
 _.kanaToHira('アイウ')             // 'あいう'
@@ -233,25 +231,23 @@ _.haifun('test‐data', '-')       // 'test-data'
 
 ```typescript
 import _ from 'ansuko'
-import geoPlugin from 'ansuko/plugins/geo'
-
-const extended = _.extend(geoPlugin)
+import 'ansuko/plugins/geo'
 
 // Convert various formats to GeoJSON
-extended.toPointGeoJson([139.7671, 35.6812])
+_.toPointGeoJson([139.7671, 35.6812])
 // => { type: 'Point', coordinates: [139.7671, 35.6812] }
 
-extended.toPointGeoJson({ lat: 35.6895, lng: 139.6917 })
+_.toPointGeoJson({ lat: 35.6895, lng: 139.6917 })
 // => { type: 'Point', coordinates: [139.6917, 35.6895] }
 
 // Union multiple polygons
-const unified = extended.unionPolygon([polygon1, polygon2])
+const unified = _.unionPolygon([polygon1, polygon2])
 
 // MapBox utilities
-extended.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
+_.mZoomInterpolate({ 10: 1, 15: 5, 20: 10 })
 // => ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 5, 20, 10]
 
-extended.mProps({
+_.mProps({
   fillColor: "#ff0000",
   sourceLayer: "buildings",
   visibility: true
@@ -262,31 +258,51 @@ extended.mProps({
 #### Prototype Plugin
 
 ```typescript
-import _ from 'ansuko'
-import prototypePlugin from 'ansuko/plugins/prototype'
-
-_.extend(prototypePlugin)
+import 'ansuko/plugins/prototype'
 
 // Now Array.prototype is extended
 [1, 2, 3].notMap(n => n > 1)      // [true, false, false]
 [1, 2, 3].notFilter(n => n % 2)   // [2] (even numbers)
 ```
 
-### Chaining Plugins
+### Combining Plugins
 
 ```typescript
 import _ from 'ansuko'
-import jaPlugin from 'ansuko/plugins/ja'
-import geoPlugin from 'ansuko/plugins/geo'
+import 'ansuko/plugins/ja'
+import 'ansuko/plugins/geo'
 
-const extended = _
-  .extend(jaPlugin)
-  .extend(geoPlugin)
-
-// Now you have both Japanese and Geo utilities!
-extended.kanaToHira('アイウ')
-extended.toPointGeoJson([139.7, 35.6])
+// Now you have both Japanese and Geo utilities on `_`
+_.kanaToHira('アイウ')
+_.toPointGeoJson([139.7, 35.6])
 ```
+
+Each plugin registers itself exactly once, even if imported from multiple files (a duplicate-registration guard is built in).
+
+## Migration from v1
+
+v2 removes `_.extend(plugin)` in favor of side-effect imports. The migration is mechanical:
+
+```typescript
+// v1
+import _ from 'ansuko'
+import jaPlugin from 'ansuko/plugins/ja'
+const ansuko = _.extend(jaPlugin)
+ansuko.kanaToFull('ｶﾞ')
+
+// v2
+import _ from 'ansuko'
+import 'ansuko/plugins/ja'
+_.kanaToFull('ｶﾞ')
+```
+
+Why this change:
+
+- **TypeScript autocompletion now actually works.** v1's `_.extend()` returned a new type, but the original `_` reference's type stayed the same — so IDE suggestions never appeared on `_`. v2 uses TypeScript `declare module` merging so `_` itself is augmented at the type level.
+- **Tree-shaking is honest.** Don't import a plugin = its code is not bundled.
+- **No more 330-line manual lodash type list.** `AnsukoType` now extends `Omit<LoDashStatic, ...>`, so lodash's own types are reused (with proper generics).
+
+If you previously did chained `_.extend(a).extend(b)`, replace it with two side-effect imports.
 
 ## Documentation
 

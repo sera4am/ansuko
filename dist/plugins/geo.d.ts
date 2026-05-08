@@ -1,5 +1,4 @@
-import GeoJSON from "geojson";
-import { type AnsukoType } from "../index.js";
+import GeoJSON, { Geometry } from "geojson";
 /**
  * Geometry type selector for conversions. Use `auto` to try higher dimensions first.
  */
@@ -12,8 +11,15 @@ export declare enum GeomType {
     multiLineString = 5,
     auto = "auto"
 }
+/**
+ * geo プラグインが ansuko に追加するメソッド群。
+ *
+ * このインターフェースは下記の `declare module` ブロックで `AnsukoType` に merge され、
+ * `import "ansuko/plugins/geo"` するだけで `_` の型が自動的に拡張される。
+ */
 export interface AnsukoGeoPluginExtension {
     toLngLatArray: (coord: any, digit?: number) => [lng: number, lat: number] | null;
+    toGeoJson: (geo: any, type?: GeomType, digit?: number) => Geometry | null;
     toPointGeoJson: (geo: any, digit?: number) => GeoJSON.Point | null;
     toPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.Polygon | null;
     toLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.LineString | null;
@@ -21,8 +27,12 @@ export interface AnsukoGeoPluginExtension {
     toMultiPolygonGeoJson: (geo: any, digit?: number) => GeoJSON.MultiPolygon | null;
     toMultiLineStringGeoJson: (geo: any, digit?: number) => GeoJSON.MultiLineString | null;
     unionPolygon: (geo: any, digit?: number) => GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
+    parseToTerraDraw: (geo: any) => GeoJSON.Feature[];
     mZoomInterpolate: (zoomValues: Record<number, number>, type?: string) => any;
     mProps: (properties: Record<string, any>, excludeKeys?: string[]) => Record<string, any>;
 }
-declare const ansukoGeoPlugin: <T extends AnsukoType>(ansuko: T) => T & AnsukoGeoPluginExtension;
-export default ansukoGeoPlugin;
+declare module "../index.js" {
+    interface AnsukoType extends AnsukoGeoPluginExtension {
+    }
+}
+export {};

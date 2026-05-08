@@ -1,8 +1,6 @@
-import _ from '../dist/index.js'
-import proto from '../dist/plugins/prototype.js'
+import '../dist/index.js'
+import '../dist/plugins/prototype.js'
 import { describe, it, expect } from 'vitest'
-
-_.extend(proto)
 
 describe('Prototype Plugin', () => {
   it('notMap', () => {

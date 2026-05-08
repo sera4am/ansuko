@@ -1,4 +1,5 @@
 import * as turf from "@turf/turf";
+import _ from "../index.js";
 /**
  * Geometry type selector for conversions. Use `auto` to try higher dimensions first.
  */
@@ -12,8 +13,9 @@ export var GeomType;
     GeomType[GeomType["multiLineString"] = 5] = "multiLineString";
     GeomType["auto"] = "auto";
 })(GeomType || (GeomType = {}));
-const ansukoGeoPlugin = (ansuko) => {
-    const _ = ansuko;
+const PLUGIN_NAME = "geo";
+if (!_.__plugins.has(PLUGIN_NAME)) {
+    _.__plugins.add(PLUGIN_NAME);
     /**
      * Converts a coordinate-like value to a [lng, lat] tuple, optionally rounding digits.
      * Swaps order if lat/lng appear to be inverted. Returns null when invalid.
@@ -653,7 +655,7 @@ const ansukoGeoPlugin = (ansuko) => {
         }
         return properties;
     };
-    const a = ansuko;
+    const a = _;
     a.toLngLatArray = toLngLatArray;
     a.toGeoJson = toGeoJson;
     a.toPointGeoJson = toPointGeoJson;
@@ -666,6 +668,4 @@ const ansukoGeoPlugin = (ansuko) => {
     a.parseToTerraDraw = parseToTerraDraw;
     a.mZoomInterpolate = mZoomInterpolate;
     a.mProps = mProps;
-    return ansuko;
-};
-export default ansukoGeoPlugin;
+}

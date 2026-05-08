@@ -18,5 +18,4 @@ declare global {
         notFilter(predicate: (item: T) => boolean): T[];
     }
 }
-declare const ansukoPrototypePlugin: (ansuko: any) => void;
-export default ansukoPrototypePlugin;
+export {};

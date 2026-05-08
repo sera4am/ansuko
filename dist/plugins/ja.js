@@ -1,6 +1,8 @@
+import _ from "../index.js";
 import { haifun } from "../util.js";
-const ansukoJaPlugin = (ansuko) => {
-    const _ = ansuko;
+const PLUGIN_NAME = "ja";
+if (!_.__plugins.has(PLUGIN_NAME)) {
+    _.__plugins.add(PLUGIN_NAME);
     const kanaMap = {
         'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
         'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ',
@@ -64,7 +66,7 @@ const ansukoJaPlugin = (ansuko) => {
         if (!_.isValidStr(str)) {
             return null;
         }
-        return kanaToFull(str)?.replace(/[\u30a1-\u30f6]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) ?? null;
+        return kanaToFull(str)?.replace(/[ァ-ヶ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) ?? null;
     };
     /**
      * Converts hiragana to katakana.
@@ -77,7 +79,7 @@ const ansukoJaPlugin = (ansuko) => {
         if (!_.isValidStr(str)) {
             return null;
         }
-        return str.replace(/[\u3041-\u3096]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60)) ?? null;
+        return str.replace(/[ぁ-ゖ]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60)) ?? null;
     };
     /**
      * Converts half-width characters to full-width; optionally normalizes hyphens.
@@ -99,7 +101,7 @@ const ansukoJaPlugin = (ansuko) => {
             const code = char.charCodeAt(0);
             // スペース
             if (code === 0x0020) {
-                return '\u3000'; // 全角スペース
+                return '　'; // 全角スペース
             }
             // 全角は0x0021～0x007E、半角は0xFF01～0xFF5E
             if (code >= 0x0021 && code <= 0x007E) {
@@ -126,7 +128,7 @@ const ansukoJaPlugin = (ansuko) => {
             const code = char.charCodeAt(0);
             // スペース
             if (code === 0x3000) {
-                return '\u0020'; // 半角スペース
+                return ' '; // 半角スペース
             }
             // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
             if (code >= 0xFF01 && code <= 0xFF5E) {
@@ -136,7 +138,7 @@ const ansukoJaPlugin = (ansuko) => {
         }).join('');
         return withHaifun ? haifun(str, withHaifun) : str;
     };
-    const a = ansuko;
+    const a = _;
     a.kanaToFull = kanaToFull;
     a.kanaToHalf = kanaToHalf;
     a.kanaToHira = kanaToHira;
@@ -144,6 +146,4 @@ const ansukoJaPlugin = (ansuko) => {
     a.toHalfWidth = toHalfWidth;
     a.toFullWidth = toFullWidth;
     a.haifun = haifun;
-    return ansuko;
-};
-export default ansukoJaPlugin;
+}

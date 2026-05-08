@@ -1,21 +1,30 @@
-import { type AnsukoType } from "../index.js"
-import { toHalfWidth, haifun } from "../util.js"
+import _ from "../index.js"
+import { toHalfWidth as utilToHalfWidth, haifun } from "../util.js"
 
-
+/**
+ * ja プラグインが ansuko に追加するメソッド群。
+ *
+ * このインターフェースは下記の `declare module` ブロックで `AnsukoType` に merge され、
+ * `import "ansuko/plugins/ja"` するだけで `_` の型が自動的に拡張される。
+ */
 export interface AnsukoJaExtension {
     kanaToFull: (str: unknown) => string | null
     kanaToHalf: (str: unknown) => string | null
     kanaToHira: (str: unknown) => string | null
     hiraToKana: (str: unknown) => string | null
-    toHalfWidth: typeof toHalfWidth
+    toHalfWidth: typeof utilToHalfWidth
     toFullWidth: (value: unknown, withHaifun?: string) => string | null
     haifun: typeof haifun
 }
 
-const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension => {
+declare module "../index.js" {
+    interface AnsukoType extends AnsukoJaExtension {}
+}
 
-    const _ = ansuko as AnsukoType
+const PLUGIN_NAME = "ja"
 
+if (!_.__plugins.has(PLUGIN_NAME)) {
+    _.__plugins.add(PLUGIN_NAME)
 
     const kanaMap: Record<string, string> = {
         'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ',
@@ -79,7 +88,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
      */
     const kanaToHira = (str: unknown): string | null => {
         if (!_.isValidStr(str)) { return null }
-        return kanaToFull(str)?.replace(/[\u30a1-\u30f6]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) ?? null
+        return kanaToFull(str)?.replace(/[ァ-ヶ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60)) ?? null
     }
 
     /**
@@ -91,7 +100,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
      */
     const hiraToKana = (str: unknown): string | null => {
         if (!_.isValidStr(str)) { return null }
-        return str.replace(/[\u3041-\u3096]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60)) ?? null
+        return str.replace(/[ぁ-ゖ]/g, s => String.fromCharCode(s.charCodeAt(0) + 0x60)) ?? null
     }
 
 
@@ -111,7 +120,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
             const code = char.charCodeAt(0)
             // スペース
             if (code === 0x0020) {
-                return '\u3000'  // 全角スペース
+                return '　'  // 全角スペース
             }
             // 全角は0x0021～0x007E、半角は0xFF01～0xFF5E
             if (code >= 0x0021 && code <= 0x007E) {
@@ -137,7 +146,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
             const code = char.charCodeAt(0)
             // スペース
             if (code === 0x3000) {
-                return '\u0020'  // 半角スペース
+                return ' '  // 半角スペース
             }
             // 全角は0xFF01～0xFF5E、半角は0x0021～0x007E
             if (code >= 0xFF01 && code <= 0xFF5E) {
@@ -148,7 +157,7 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
         return withHaifun ? haifun(str, withHaifun) : str
     }
 
-    const a = ansuko as any
+    const a = _ as any
     a.kanaToFull = kanaToFull
     a.kanaToHalf = kanaToHalf
     a.kanaToHira = kanaToHira
@@ -156,8 +165,6 @@ const ansukoJaPlugin = <T extends AnsukoType>(ansuko: T): T & AnsukoJaExtension 
     a.toHalfWidth = toHalfWidth
     a.toFullWidth = toFullWidth
     a.haifun = haifun
-
-    return ansuko as T & AnsukoJaExtension
 }
 
-export default ansukoJaPlugin
+export {}

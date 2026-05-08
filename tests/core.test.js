@@ -170,11 +170,14 @@ describe('Core Functions', () => {
     expect(finallySpy.length).toBe(1)
   })
 
-  it('extend (plugin mechanism)', async () => {
-    const plugin = (a) => { a.magic = () => 123; return a }
-    const extended = _.extend(plugin)
-    expect(typeof extended.magic).toBe('function')
-    expect(extended.magic()).toBe(123)
+  it('plugin registry (__plugins) is exposed and prevents duplicates', async () => {
+    expect(_.__plugins).toBeInstanceOf(Set)
+    // ja プラグインを2回 import しても1回しか登録されないことを確認
+    await import('../dist/plugins/ja.js')
+    const sizeBefore = _.__plugins.size
+    expect(_.__plugins.has('ja')).toBe(true)
+    await import('../dist/plugins/ja.js')
+    expect(_.__plugins.size).toBe(sizeBefore)
   })
 
   it('lodash passthrough', () => {

@@ -1,4 +1,4 @@
-import lodash from "lodash"
+import lodash, { type LoDashStatic } from "lodash"
 import JSON5 from "json5"
 import { toHalfWidth } from "./util.js"
 
@@ -485,16 +485,16 @@ const strWrap = (value: string, wrapper: string, whenInvalid:any = undefined): s
 /**
  * Executes a function and returns undefined if an error occurs.
  * For functions returning a Promise, returns undefined if the Promise is rejected.
- * 
+ *
  * @template T - The return type of the function
  * @param fn - The function to execute
  * @returns The result of the function execution, or undefined on error
- * 
+ *
  * @example
  * // Synchronous function
  * swallow(() => data.remove() )
  * // => undefined (error ignored)
- * 
+ *
  * @example
  * // Asynchronous function
  * const data = await swallow(async () => await fetchData());
@@ -515,24 +515,24 @@ const swallow = <T>(fn: () => T): T extends Promise<infer U> ? Promise<U | undef
 /**
  * Maps over an array, treating errors as undefined.
  * When compact is true, filters out undefined results (errors).
- * 
+ *
  * @template T - The array element type
  * @template U - The function return type
  * @param array - The array to process
  * @param fn - The function to apply to each element
  * @param compact - If true, filters out undefined results (errors) from the output
  * @returns Array of results, or Promise of results for async functions
- * 
+ *
  * @example
  * // Keep errors as undefined
  * const results = swallowMap(items, item => processItem(item));
  * // => [result1, undefined, result3, ...]
- * 
+ *
  * @example
  * // Filter out errors (compact)
  * const results = swallowMap(items, item => processItem(item), true);
  * // => [result1, result3, ...]
- * 
+ *
  * @example
  * // Async processing
  * const data = await swallowMap(urls, async url => await fetch(url), true);
@@ -586,20 +586,6 @@ const arrayDepth = (ary: unknown): number => {
     return 1 + Math.min(...(ary as []).map(arrayDepth))
 }
 
-/**
- * Extends ansuko with a plugin and returns the augmented instance.
- * @param plugin - Plugin function
- * @returns Extended instance
- * @example const extended = lodash.extend(jaPlugin)
- * @category Core Functions
- */
-const extend = function <T extends AnsukoType, E>(this: T, plugin: (a: T) => T & E): T & E {
-    if (typeof plugin === 'function') {
-        return plugin(this)  // プラグインの戻り値をそのまま返す
-    }
-    return this as T & E
-}
-
 
 export type ChangesOptions = {
     keyExcludes?: boolean
@@ -608,10 +594,18 @@ export type ChangesOptions = {
 type ChangesAfterCallback<T> = (value: T) => any | Promise<any>
 type ChangesAfterFinallyCallback<T> = (value: T, res: any) => any | Promise<any>
 
+// ansuko で上書き / 削除する lodash のキー
+type AnsukoOverriddenKeys = 'isEmpty' | 'toNumber' | 'castArray' | 'extend'
 
-export interface AnsukoType {
-    // ansuko original functions
-    extend: typeof extend
+/**
+ * ansuko 本体の型。lodash の全関数 (上書き対象を除く) をそのまま継承し、
+ * ansuko 独自関数を追加した形になる。
+ *
+ * プラグインを読み込むと、各プラグインの d.ts に書かれた declaration merging により
+ * このインターフェースが自動的に拡張される。
+ */
+export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
+    // ansuko 独自関数
     isValidStr: typeof isValidStr
     valueOr: typeof valueOr
     emptyOr: typeof emptyOr
@@ -628,323 +622,28 @@ export interface AnsukoType {
     arrayDepth: typeof arrayDepth
     strWrap: typeof strWrap
 
-    // ansuko overridden functions (with original versions)
+    // ansuko で挙動を上書きしている関数
     isEmpty: typeof isEmpty
     toNumber: typeof toNumber
     castArray: typeof castArray
+
+    // 上書き前の lodash オリジナル
     isEmptyOrg: typeof lodash.isEmpty
     toNumberOrg: typeof lodash.toNumber
     castArrayOrg: typeof lodash.castArray
 
-    // all lodash functions
-    add: typeof lodash.add
-    after: typeof lodash.after
-    ary: typeof lodash.ary
-    assign: typeof lodash.assign
-    assignIn: typeof lodash.assignIn
-    assignInWith: typeof lodash.assignInWith
-    assignWith: typeof lodash.assignWith
-    at: typeof lodash.at
-    attempt: typeof lodash.attempt
-    before: typeof lodash.before
-    bind: typeof lodash.bind
-    bindAll: typeof lodash.bindAll
-    bindKey: typeof lodash.bindKey
-    camelCase: typeof lodash.camelCase
-    capitalize: typeof lodash.capitalize
-    ceil: typeof lodash.ceil
-    chain: typeof lodash.chain
-    chunk: typeof lodash.chunk
-    clamp: typeof lodash.clamp
-    clone: typeof lodash.clone
-    cloneDeep: typeof lodash.cloneDeep
-    cloneDeepWith: typeof lodash.cloneDeepWith
-    cloneWith: typeof lodash.cloneWith
-    compact: typeof lodash.compact
-    concat: typeof lodash.concat
-    cond: typeof lodash.cond
-    conforms: typeof lodash.conforms
-    conformsTo: typeof lodash.conformsTo
-    constant: typeof lodash.constant
-    countBy: typeof lodash.countBy
-    create: typeof lodash.create
-    curry: typeof lodash.curry
-    curryRight: typeof lodash.curryRight
-    debounce: typeof lodash.debounce
-    deburr: typeof lodash.deburr
-    defaultTo: typeof lodash.defaultTo
-    defaults: typeof lodash.defaults
-    defaultsDeep: typeof lodash.defaultsDeep
-    defer: typeof lodash.defer
-    delay: typeof lodash.delay
-    difference: typeof lodash.difference
-    differenceBy: typeof lodash.differenceBy
-    differenceWith: typeof lodash.differenceWith
-    divide: typeof lodash.divide
-    drop: typeof lodash.drop
-    dropRight: typeof lodash.dropRight
-    dropRightWhile: typeof lodash.dropRightWhile
-    dropWhile: typeof lodash.dropWhile
-    each: typeof lodash.each
-    eachRight: typeof lodash.eachRight
-    endsWith: typeof lodash.endsWith
-    entries: typeof lodash.entries
-    entriesIn: typeof lodash.entriesIn
-    eq: typeof lodash.eq
-    escape: typeof lodash.escape
-    escapeRegExp: typeof lodash.escapeRegExp
-    every: typeof lodash.every
-    extendWith: typeof lodash.extendWith
-    fill: typeof lodash.fill
-    filter: typeof lodash.filter
-    find: typeof lodash.find
-    findIndex: typeof lodash.findIndex
-    findKey: typeof lodash.findKey
-    findLast: typeof lodash.findLast
-    findLastIndex: typeof lodash.findLastIndex
-    findLastKey: typeof lodash.findLastKey
-    first: typeof lodash.first
-    flatMap: typeof lodash.flatMap
-    flatMapDeep: typeof lodash.flatMapDeep
-    flatMapDepth: typeof lodash.flatMapDepth
-    flatten: typeof lodash.flatten
-    flattenDeep: typeof lodash.flattenDeep
-    flattenDepth: typeof lodash.flattenDepth
-    flip: typeof lodash.flip
-    floor: typeof lodash.floor
-    flow: typeof lodash.flow
-    flowRight: typeof lodash.flowRight
-    forEach: typeof lodash.forEach
-    forEachRight: typeof lodash.forEachRight
-    forIn: typeof lodash.forIn
-    forInRight: typeof lodash.forInRight
-    forOwn: typeof lodash.forOwn
-    forOwnRight: typeof lodash.forOwnRight
-    fromPairs: typeof lodash.fromPairs
-    functions: typeof lodash.functions
-    functionsIn: typeof lodash.functionsIn
-    get: typeof lodash.get
-    groupBy: typeof lodash.groupBy
-    gt: typeof lodash.gt
-    gte: typeof lodash.gte
-    has: typeof lodash.has
-    hasIn: typeof lodash.hasIn
-    head: typeof lodash.head
-    identity: typeof lodash.identity
-    inRange: typeof lodash.inRange
-    includes: typeof lodash.includes
-    indexOf: typeof lodash.indexOf
-    initial: typeof lodash.initial
-    intersection: typeof lodash.intersection
-    intersectionBy: typeof lodash.intersectionBy
-    intersectionWith: typeof lodash.intersectionWith
-    invert: typeof lodash.invert
-    invertBy: typeof lodash.invertBy
-    invoke: typeof lodash.invoke
-    invokeMap: typeof lodash.invokeMap
-    isArguments: typeof lodash.isArguments
-    isArray: typeof lodash.isArray
-    isArrayBuffer: typeof lodash.isArrayBuffer
-    isArrayLike: typeof lodash.isArrayLike
-    isArrayLikeObject: typeof lodash.isArrayLikeObject
-    isBoolean: typeof lodash.isBoolean
-    isBuffer: typeof lodash.isBuffer
-    isDate: typeof lodash.isDate
-    isElement: typeof lodash.isElement
-    isEqual: typeof lodash.isEqual
-    isEqualWith: typeof lodash.isEqualWith
-    isError: typeof lodash.isError
-    isFinite: typeof lodash.isFinite
-    isFunction: typeof lodash.isFunction
-    isInteger: typeof lodash.isInteger
-    isLength: typeof lodash.isLength
-    isMap: typeof lodash.isMap
-    isMatch: typeof lodash.isMatch
-    isMatchWith: typeof lodash.isMatchWith
-    isNaN: typeof lodash.isNaN
-    isNative: typeof lodash.isNative
-    isNil: typeof lodash.isNil
-    isNull: typeof lodash.isNull
-    isNumber: typeof lodash.isNumber
-    isObject: typeof lodash.isObject
-    isObjectLike: typeof lodash.isObjectLike
-    isPlainObject: typeof lodash.isPlainObject
-    isRegExp: typeof lodash.isRegExp
-    isSafeInteger: typeof lodash.isSafeInteger
-    isSet: typeof lodash.isSet
-    isString: typeof lodash.isString
-    isSymbol: typeof lodash.isSymbol
-    isTypedArray: typeof lodash.isTypedArray
-    isUndefined: typeof lodash.isUndefined
-    isWeakMap: typeof lodash.isWeakMap
-    isWeakSet: typeof lodash.isWeakSet
-    iteratee: typeof lodash.iteratee
-    join: typeof lodash.join
-    kebabCase: typeof lodash.kebabCase
-    keyBy: typeof lodash.keyBy
-    keys: typeof lodash.keys
-    keysIn: typeof lodash.keysIn
-    last: typeof lodash.last
-    lastIndexOf: typeof lodash.lastIndexOf
-    lowerCase: typeof lodash.lowerCase
-    lowerFirst: typeof lodash.lowerFirst
-    lt: typeof lodash.lt
-    lte: typeof lodash.lte
-    map: typeof lodash.map
-    mapKeys: typeof lodash.mapKeys
-    mapValues: typeof lodash.mapValues
-    matches: typeof lodash.matches
-    matchesProperty: typeof lodash.matchesProperty
-    max: typeof lodash.max
-    maxBy: typeof lodash.maxBy
-    mean: typeof lodash.mean
-    meanBy: typeof lodash.meanBy
-    memoize: typeof lodash.memoize
-    merge: typeof lodash.merge
-    mergeWith: typeof lodash.mergeWith
-    method: typeof lodash.method
-    methodOf: typeof lodash.methodOf
-    min: typeof lodash.min
-    minBy: typeof lodash.minBy
-    mixin: typeof lodash.mixin
-    multiply: typeof lodash.multiply
-    negate: typeof lodash.negate
-    noConflict: typeof lodash.noConflict
-    noop: typeof lodash.noop
-    now: typeof lodash.now
-    nth: typeof lodash.nth
-    nthArg: typeof lodash.nthArg
-    omit: typeof lodash.omit
-    omitBy: typeof lodash.omitBy
-    once: typeof lodash.once
-    orderBy: typeof lodash.orderBy
-    over: typeof lodash.over
-    overArgs: typeof lodash.overArgs
-    overEvery: typeof lodash.overEvery
-    overSome: typeof lodash.overSome
-    pad: typeof lodash.pad
-    padEnd: typeof lodash.padEnd
-    padStart: typeof lodash.padStart
-    parseInt: typeof lodash.parseInt
-    partial: typeof lodash.partial
-    partialRight: typeof lodash.partialRight
-    partition: typeof lodash.partition
-    pick: typeof lodash.pick
-    pickBy: typeof lodash.pickBy
-    property: typeof lodash.property
-    propertyOf: typeof lodash.propertyOf
-    pull: typeof lodash.pull
-    pullAll: typeof lodash.pullAll
-    pullAllBy: typeof lodash.pullAllBy
-    pullAllWith: typeof lodash.pullAllWith
-    pullAt: typeof lodash.pullAt
-    random: typeof lodash.random
-    range: typeof lodash.range
-    rangeRight: typeof lodash.rangeRight
-    rearg: typeof lodash.rearg
-    reduce: typeof lodash.reduce
-    reduceRight: typeof lodash.reduceRight
-    reject: typeof lodash.reject
-    remove: typeof lodash.remove
-    repeat: typeof lodash.repeat
-    replace: typeof lodash.replace
-    rest: typeof lodash.rest
-    result: typeof lodash.result
-    reverse: typeof lodash.reverse
-    round: typeof lodash.round
-    runInContext: typeof lodash.runInContext
-    sample: typeof lodash.sample
-    sampleSize: typeof lodash.sampleSize
-    set: typeof lodash.set
-    setWith: typeof lodash.setWith
-    shuffle: typeof lodash.shuffle
-    size: typeof lodash.size
-    slice: typeof lodash.slice
-    snakeCase: typeof lodash.snakeCase
-    some: typeof lodash.some
-    sortBy: typeof lodash.sortBy
-    sortedIndex: typeof lodash.sortedIndex
-    sortedIndexBy: typeof lodash.sortedIndexBy
-    sortedIndexOf: typeof lodash.sortedIndexOf
-    sortedLastIndex: typeof lodash.sortedLastIndex
-    sortedLastIndexBy: typeof lodash.sortedLastIndexBy
-    sortedLastIndexOf: typeof lodash.sortedLastIndexOf
-    sortedUniq: typeof lodash.sortedUniq
-    sortedUniqBy: typeof lodash.sortedUniqBy
-    split: typeof lodash.split
-    spread: typeof lodash.spread
-    startCase: typeof lodash.startCase
-    startsWith: typeof lodash.startsWith
-    stubArray: typeof lodash.stubArray
-    stubFalse: typeof lodash.stubFalse
-    stubObject: typeof lodash.stubObject
-    stubString: typeof lodash.stubString
-    stubTrue: typeof lodash.stubTrue
-    subtract: typeof lodash.subtract
-    sum: typeof lodash.sum
-    sumBy: typeof lodash.sumBy
-    tail: typeof lodash.tail
-    take: typeof lodash.take
-    takeRight: typeof lodash.takeRight
-    takeRightWhile: typeof lodash.takeRightWhile
-    takeWhile: typeof lodash.takeWhile
-    tap: typeof lodash.tap
-    template: typeof lodash.template
-    throttle: typeof lodash.throttle
-    thru: typeof lodash.thru
-    times: typeof lodash.times
-    toArray: typeof lodash.toArray
-    toFinite: typeof lodash.toFinite
-    toInteger: typeof lodash.toInteger
-    toLength: typeof lodash.toLength
-    toLower: typeof lodash.toLower
-    toPairs: typeof lodash.toPairs
-    toPairsIn: typeof lodash.toPairsIn
-    toPath: typeof lodash.toPath
-    toPlainObject: typeof lodash.toPlainObject
-    toSafeInteger: typeof lodash.toSafeInteger
-    toString: typeof lodash.toString
-    toUpper: typeof lodash.toUpper
-    transform: typeof lodash.transform
-    trim: typeof lodash.trim
-    trimEnd: typeof lodash.trimEnd
-    trimStart: typeof lodash.trimStart
-    truncate: typeof lodash.truncate
-    unary: typeof lodash.unary
-    unescape: typeof lodash.unescape
-    union: typeof lodash.union
-    unionBy: typeof lodash.unionBy
-    unionWith: typeof lodash.unionWith
-    uniq: typeof lodash.uniq
-    uniqBy: typeof lodash.uniqBy
-    uniqWith: typeof lodash.uniqWith
-    uniqueId: typeof lodash.uniqueId
-    unset: typeof lodash.unset
-    unzip: typeof lodash.unzip
-    unzipWith: typeof lodash.unzipWith
-    update: typeof lodash.update
-    updateWith: typeof lodash.updateWith
-    upperCase: typeof lodash.upperCase
-    upperFirst: typeof lodash.upperFirst
-    values: typeof lodash.values
-    valuesIn: typeof lodash.valuesIn
-    without: typeof lodash.without
-    words: typeof lodash.words
-    wrap: typeof lodash.wrap
-    xor: typeof lodash.xor
-    xorBy: typeof lodash.xorBy
-    xorWith: typeof lodash.xorWith
-    zip: typeof lodash.zip
-    zipObject: typeof lodash.zipObject
-    zipObjectDeep: typeof lodash.zipObjectDeep
-    zipWith: typeof lodash.zipWith
+    /**
+     * 登録済みプラグイン名のレジストリ。
+     * プラグインの side-effect import 時に重複登録を防ぐために使用される。
+     * 通常コードから直接触らないこと。
+     * @internal
+     */
+    __plugins: Set<string>
 }
 
-// Ansuko型へのキャストを外し、より安全な unknown as LoDashStatic に変更
 // 変数名を _ にすることで、VS Code の auto import 候補が `_` として表示される
 const _ = {
     ...(lodash as any),
-    extend,
     isEmptyOrg: lodash.isEmpty,
     toNumberOrg: lodash.toNumber,
     castArrayOrg: lodash.castArray,
@@ -966,6 +665,7 @@ const _ = {
     swallow,
     swallowMap,
     arrayDepth,
+    __plugins: new Set<string>(),
 } as AnsukoType
 export default _
 

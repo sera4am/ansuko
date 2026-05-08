@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-05-08
+
 ### Added
 - Added `_.isValidEmail` for strict email format validation in core utilities.
 - Added documentation and examples for `_.isValidEmail` in README files.
@@ -66,5 +68,6 @@ If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
 [Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/sera4am/ansuko/releases/tag/v2.0.1
 [2.0.1]: https://github.com/sera4am/ansuko/releases/tag/v2.0.1
 [2.0.0]: https://github.com/sera4am/ansuko/releases/tag/v2.0.0

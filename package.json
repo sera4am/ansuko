@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@turf/turf": "^7.3.1",
+    "@types/lodash": "^4.14.202",
     "json5": "^2.2.3",
     "lodash": "^4.17.21"
   },
@@ -61,7 +62,6 @@
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@types/geojson": "^7946.0.16",
-    "@types/lodash": "^4.14.202",
     "@types/node": "^25.0.5",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "eslint": "^9.39.2",

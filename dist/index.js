@@ -303,16 +303,6 @@ const parseJSON = (str) => {
         return null;
     }
 };
-/**
- * Stringifies objects/arrays; returns null for strings or numbers.
- * @param obj - Target object
- * @param replacer — A function that transforms the results.
- * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
- * @returns JSON string or null
- * @example jsonStringify({a:1}) // '{"a":1}'
- * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
- * @category Conversion
- */
 const jsonStringify = (obj, replacer, space) => {
     if (lodash.isNil(obj)) {
         return null;

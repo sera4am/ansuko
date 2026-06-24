@@ -144,7 +144,14 @@ declare const parseJSON: <T = any>(str: string | object | null | undefined) => T
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
-declare const jsonStringify: <T = any>(obj: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number | undefined) => string | null;
+type JsonStringifyReplacer = ((this: any, key: string, value: any) => any) | undefined;
+type JsonStringifySpace = string | number | undefined;
+type jsonStringifyProps = {
+    (obj: Record<string, any>, replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string;
+    (obj: any[], replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string;
+    (obj: unknown, replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string | null;
+};
+declare const jsonStringify: jsonStringifyProps;
 /**
  * Casts value to array; null/undefined become [] (not [null]).
  * @param value - Value

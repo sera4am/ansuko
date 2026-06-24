@@ -366,7 +366,14 @@ const parseJSON = <T = any>(str: string | object | null | undefined): T | null =
  * @example jsonStringify('{a:1}') // '{"a":1}' (normalize)
  * @category Conversion
  */
-const jsonStringify = <T = any>(obj: T, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number | undefined): string | null => {
+type JsonStringifyReplacer = ((this: any, key: string, value: any) => any) | undefined
+type JsonStringifySpace = string | number | undefined
+type jsonStringifyProps = {
+    (obj: Record<string, any>, replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string
+    (obj: any[], replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string
+    (obj: unknown, replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): string | null
+}
+const jsonStringify: jsonStringifyProps = (obj: unknown, replacer?: JsonStringifyReplacer, space?: JsonStringifySpace): any => {
     if (lodash.isNil(obj)) { return null }
     if (typeof obj === "string") {
         try {

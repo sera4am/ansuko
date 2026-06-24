@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.7] - 2026-06-25
+
 ## [2.0.6] - 2026-06-25
 
 ## [2.0.5] - 2026-06-24
@@ -77,7 +79,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.6...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.7...HEAD
+[2.0.7]: https://github.com/sera4am/ansuko/releases/tag/v2.0.7
 [2.0.6]: https://github.com/sera4am/ansuko/releases/tag/v2.0.6
 [2.0.5]: https://github.com/sera4am/ansuko/releases/tag/v2.0.5
 [2.0.4]: https://github.com/sera4am/ansuko/releases/tag/v2.0.4

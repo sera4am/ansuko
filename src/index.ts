@@ -30,13 +30,15 @@ const isValidStr = (str: unknown): str is string => {
 type MaybePromise<T> = T | Promise<T>
 type MaybeFunction<T> = T | (() => MaybePromise<T>)
 
-const valueOr = <T, E>(
-    value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els?: E | (() => MaybePromise<E>)
-): MaybePromise<T | E | undefined | null> => {
+type valueOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, els?: E | (() => MaybePromise<E>)): Promise<T | E | undefined | null>
+    <T, E>(value: () => Promise<T | null | undefined>, els?: E | (() => MaybePromise<E>)): Promise<T | E | undefined | null>
+    <T, E>(value: MaybeFunction<T | null | undefined>, els?: E | (() => E)): T | E | undefined | null
+}
+const valueOr: valueOrProps = (value: any, els?: any): any => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
-        ? (value as () => MaybePromise<T | null | undefined>)()
+        ? (value as () => any)()
         : value
 
     // Promiseかチェック
@@ -44,7 +46,7 @@ const valueOr = <T, E>(
         return Promise.resolve(resolvedValue).then(res => {
             if (lodash.isNil(res) || isEmpty(res)) {
                 if (typeof els === "function") {
-                    return (els as () => E)()
+                    return (els as () => any)()
                 }
                 return els
             }
@@ -55,18 +57,20 @@ const valueOr = <T, E>(
         return resolvedValue
     }
     if (typeof els === "function") {
-        return (els as () => E)()
+        return (els as () => any)()
     }
     return els
 }
 
-const emptyOr = <T, E>(
-    value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    els?: E | ((val: T | null | undefined) => MaybePromise<E>)
-): MaybePromise<T | E | undefined | null> => {
+type emptyOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | null>
+    <T, E>(value: () => Promise<T | null | undefined>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | null>
+    <T, E>(value: MaybeFunction<T | null | undefined>, els?: E | ((val: T | null | undefined) => E)): T | E | null
+}
+const emptyOr: emptyOrProps = (value: any, els?: any): any => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
-        ? (value as () => MaybePromise<T | null | undefined>)()
+        ? (value as () => any)()
         : value
 
     // Promiseかチェック
@@ -76,7 +80,7 @@ const emptyOr = <T, E>(
                 return null
             }
             if (typeof els === "function") {
-                return (els as (val: T | null | undefined) => E)(res)
+                return (els as (val: any) => any)(res)
             }
             return els
         })
@@ -85,7 +89,7 @@ const emptyOr = <T, E>(
         return null
     }
     if (typeof els === "function") {
-        return (els as (val: T) => E)(resolvedValue)
+        return (els as (val: any) => any)(resolvedValue)
     }
     return els
 }
@@ -102,14 +106,15 @@ const emptyOr = <T, E>(
  * @example hasOr({a:{b:1}}, 'a.b', {}) // returns original object
  * @category Promise Utilities
  */
-const hasOr = <T, E>(
-    value: MaybeFunction<MaybePromise<T | null | undefined>>,
-    paths: string | string[],
-    els?: E | ((val: T | null | undefined) => MaybePromise<E>)
-): MaybePromise<T | E | undefined | null> => {
+type hasOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | undefined | null>
+    <T, E>(value: () => Promise<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | undefined | null>
+    <T, E>(value: MaybeFunction<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => E)): T | E | undefined | null
+}
+const hasOr: hasOrProps = (value: any, paths: string | string[], els?: any): any => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
-        ? (value as () => MaybePromise<T | null | undefined>)()
+        ? (value as () => any)()
         : value
 
     const pathArray = Array.isArray(paths) ? paths : [paths]
@@ -125,20 +130,20 @@ const hasOr = <T, E>(
         return Promise.resolve(resolvedValue).then(res => {
             if (!checkPaths(res)) {
                 if (typeof els === "function") {
-                    return (els as (val: T | null | undefined) => MaybePromise<E>)(res)
+                    return (els as (val: any) => any)(res)
                 }
-                return els as E
+                return els
             }
-            return res as T
+            return res
         })
     }
     if (!checkPaths(resolvedValue)) {
         if (typeof els === "function") {
-            return (els as (val: T | null | undefined) => E)(resolvedValue)
+            return (els as (val: any) => any)(resolvedValue)
         }
-        return els as E
+        return els
     }
-    return resolvedValue as T
+    return resolvedValue
 }
 
 /**
@@ -196,7 +201,11 @@ const toNumber = (value: unknown, toFixed?:unknown): number | null => {
  * @returns boolean or null (sync or Promise)
  * @category Core Functions
  */
-const toBool = (value: unknown, undetected: boolean | null = null): MaybePromise<boolean | null> => {
+type toBoolProps = {
+    (value: Promise<unknown>, undetected?: boolean | null): Promise<boolean | null>
+    (value: unknown, undetected?: boolean | null): boolean | null
+}
+const toBool:toBoolProps = (value: any, undetected: boolean | null = null): any => {
     if (lodash.isNil(value)) { return false }
     if (isEmpty(value)) { return false }
     if (lodash.isBoolean(value)) { return value }
@@ -274,14 +283,21 @@ const waited = (func: () => void, frameCount: number = 0): void => {
  * @example equalsOr(null, undefined, 'd') // null
  * @category Promise Utilities
  */
-const equalsOr = <T, E>(...args: any[]): MaybePromise<T | E | null> => {
+type equalsOrProps = {
+    <T, E>(param1: Promise<T>, param2: MaybeFunction<MaybePromise<T>>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>
+    <T, E>(param1: MaybeFunction<T>, param2: Promise<T>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>
+    <T, E>(param1: () => Promise<T>, param2: MaybeFunction<MaybePromise<T>>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>
+    <T, E>(param1: MaybeFunction<T>, param2: MaybeFunction<T>, els?: E | (() => E)): T | E | null
+    <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)): MaybePromise<T | E | undefined | null>
+}
+const equalsOr: equalsOrProps = (...args: any[]): any => {
     if (args.length === 2) {
-        return valueOr(args[0], args[1] as E | (() => E))
+        return valueOr(args[0], args[1])
     }
     const [param1, param2, els] = args
 
     // 関数を解決するヘルパー
-    const resolveIfFunction = <V>(val: V): V | ReturnType<V extends (...args: any[]) => any ? V : never> => {
+    const resolveIfFunction = (val: any): any => {
         return typeof val === "function" ? (val as () => any)() : val
     }
 
@@ -302,7 +318,7 @@ const equalsOr = <T, E>(...args: any[]): MaybePromise<T | E | null> => {
             }
             // elsの解決
             if (typeof els === "function") {
-                return (els as () => E)()
+                return (els as () => any)()
             }
             return els
         })
@@ -314,7 +330,7 @@ const equalsOr = <T, E>(...args: any[]): MaybePromise<T | E | null> => {
         }
         // elsの解決
         if (typeof els === "function") {
-            return (els as () => E)()
+            return (els as () => any)()
         }
         return els
     }

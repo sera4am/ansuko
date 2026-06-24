@@ -68,17 +68,6 @@ const emptyOr = (value, els) => {
     }
     return els;
 };
-/**
- * Ensures that all given paths exist on the resolved value; otherwise returns a default.
- * Supports functions and Promises.
- * @param value - Object or thunk
- * @param paths - Paths to check
- * @param els - Default value or thunk receiving the resolved value
- * @returns Value or default
- * @example await hasOr(fetchUser(), ['profile.name','id'], null)
- * @example hasOr({a:{b:1}}, 'a.b', {}) // returns original object
- * @category Promise Utilities
- */
 const hasOr = (value, paths, els) => {
     // 関数を解決
     const resolvedValue = typeof value === "function"
@@ -169,16 +158,6 @@ const toNumber = (value, toFixed) => {
     }
     return v;
 };
-/**
- * Converts various inputs to boolean. Numbers: 0 -> false, non-zero -> true.
- * Strings: 'true'|'t'|'y'|'yes'|'ok' -> true; 'false'|'f'|'n'|'no'|'ng' -> false.
- * If a function or Promise is provided, it will be resolved recursively.
- * Returns the `undetected` fallback when the value cannot be interpreted (default null).
- * @param value - Value, thunk, or Promise
- * @param undetected - Fallback when value cannot be interpreted (default null)
- * @returns boolean or null (sync or Promise)
- * @category Core Functions
- */
 const toBool = (value, undetected = null) => {
     if (lodash.isNil(value)) {
         return false;
@@ -255,18 +234,6 @@ const waited = (func, frameCount = 0) => {
         func();
     });
 };
-/**
- * Compares two values; if equal returns the value, otherwise returns the default.
- * null and undefined are considered equal. Promise-aware.
- * @param param1 - First value (or thunk/promise)
- * @param param2 - Second value (or thunk/promise)
- * @param els - Default value (or thunk)
- * @returns Value or default (sync or Promise)
- * @example equalsOr('a','a','d') // 'a'
- * @example await equalsOr(fetchStatus(),'ok','ng')
- * @example equalsOr(null, undefined, 'd') // null
- * @category Promise Utilities
- */
 const equalsOr = (...args) => {
     if (args.length === 2) {
         return valueOr(args[0], args[1]);

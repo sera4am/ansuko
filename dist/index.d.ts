@@ -20,8 +20,18 @@ declare const isValidStr: (str: unknown) => str is string;
  */
 type MaybePromise<T> = T | Promise<T>;
 type MaybeFunction<T> = T | (() => MaybePromise<T>);
-declare const valueOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)) => MaybePromise<T | E | undefined | null>;
-declare const emptyOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)) => MaybePromise<T | E | undefined | null>;
+type valueOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, els?: E | (() => MaybePromise<E>)): Promise<T | E | undefined | null>;
+    <T, E>(value: () => Promise<T | null | undefined>, els?: E | (() => MaybePromise<E>)): Promise<T | E | undefined | null>;
+    <T, E>(value: MaybeFunction<T | null | undefined>, els?: E | (() => E)): T | E | undefined | null;
+};
+declare const valueOr: valueOrProps;
+type emptyOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | null>;
+    <T, E>(value: () => Promise<T | null | undefined>, els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | null>;
+    <T, E>(value: MaybeFunction<T | null | undefined>, els?: E | ((val: T | null | undefined) => E)): T | E | null;
+};
+declare const emptyOr: emptyOrProps;
 /**
  * Ensures that all given paths exist on the resolved value; otherwise returns a default.
  * Supports functions and Promises.
@@ -33,7 +43,12 @@ declare const emptyOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undef
  * @example hasOr({a:{b:1}}, 'a.b', {}) // returns original object
  * @category Promise Utilities
  */
-declare const hasOr: <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, paths: string | string[], els?: E | ((val: T | null | undefined) => MaybePromise<E>)) => MaybePromise<T | E | undefined | null>;
+type hasOrProps = {
+    <T, E>(value: Promise<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | undefined | null>;
+    <T, E>(value: () => Promise<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => MaybePromise<E>)): Promise<T | E | undefined | null>;
+    <T, E>(value: MaybeFunction<T | null | undefined>, paths: string | string[], els?: E | ((val: T | null | undefined) => E)): T | E | undefined | null;
+};
+declare const hasOr: hasOrProps;
 /**
  * Checks emptiness with intuitive rules: numbers and booleans are NOT empty.
  * @param value - Value to check
@@ -66,7 +81,11 @@ declare const toNumber: (value: unknown, toFixed?: unknown) => number | null;
  * @returns boolean or null (sync or Promise)
  * @category Core Functions
  */
-declare const toBool: (value: unknown, undetected?: boolean | null) => MaybePromise<boolean | null>;
+type toBoolProps = {
+    (value: Promise<unknown>, undetected?: boolean | null): Promise<boolean | null>;
+    (value: unknown, undetected?: boolean | null): boolean | null;
+};
+declare const toBool: toBoolProps;
 /**
  * Safely converts to boolean; numbers use zero check; otherwise returns the provided default.
  * @param value - Value
@@ -98,7 +117,14 @@ declare const waited: (func: () => void, frameCount?: number) => void;
  * @example equalsOr(null, undefined, 'd') // null
  * @category Promise Utilities
  */
-declare const equalsOr: <T, E>(...args: any[]) => MaybePromise<T | E | null>;
+type equalsOrProps = {
+    <T, E>(param1: Promise<T>, param2: MaybeFunction<MaybePromise<T>>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>;
+    <T, E>(param1: MaybeFunction<T>, param2: Promise<T>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>;
+    <T, E>(param1: () => Promise<T>, param2: MaybeFunction<MaybePromise<T>>, els?: E | (() => MaybePromise<E>)): Promise<T | E | null>;
+    <T, E>(param1: MaybeFunction<T>, param2: MaybeFunction<T>, els?: E | (() => E)): T | E | null;
+    <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)): MaybePromise<T | E | undefined | null>;
+};
+declare const equalsOr: equalsOrProps;
 /**
  * Safely parses JSON/JSON5; returns null on error; passes objects through.
  * @param str - String or object

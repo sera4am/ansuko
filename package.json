@@ -1,6 +1,6 @@
 {
   "name": "ansuko",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "A modern JavaScript/TypeScript utility library that extends lodash with practical, intuitive behaviors. Fixes lodash quirks, adds Promise support, Japanese text processing, and GeoJSON utilities.",
   "keywords": [
     "lodash",

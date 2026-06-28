@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.8] - 2026-06-28
+
 ### Added
 - `notEqualsOr(v1, v2, els)`: inverse of `equalsOr`; returns `v1` when `v1 !== v2`, otherwise returns `els`. Promise and function thunk aware.
 
@@ -88,7 +90,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.7...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.8...HEAD
+[2.0.8]: https://github.com/sera4am/ansuko/releases/tag/v2.0.8
 [2.0.7]: https://github.com/sera4am/ansuko/releases/tag/v2.0.7
 [2.0.6]: https://github.com/sera4am/ansuko/releases/tag/v2.0.6
 [2.0.5]: https://github.com/sera4am/ansuko/releases/tag/v2.0.5

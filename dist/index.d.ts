@@ -124,6 +124,7 @@ type equalsOrProps = {
     <T, E>(param1: MaybeFunction<T>, param2: MaybeFunction<T>, els?: E | (() => E)): T | E | null;
     <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)): MaybePromise<T | E | undefined | null>;
 };
+declare const notEqualsOr: equalsOrProps;
 declare const equalsOr: equalsOrProps;
 /**
  * Safely parses JSON/JSON5; returns null on error; passes objects through.
@@ -277,6 +278,7 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
     boolIf: typeof boolIf;
     waited: typeof waited;
     equalsOr: typeof equalsOr;
+    notEqualsOr: typeof notEqualsOr;
     parseJSON: typeof parseJSON;
     jsonStringify: typeof jsonStringify;
     changes: typeof changes;
@@ -301,4 +303,4 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
 }
 declare const _: AnsukoType;
 export default _;
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, notEqualsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };

@@ -9,9 +9,18 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Added
+- `notEqualsOr(v1, v2, els)`: inverse of `equalsOr`; returns `v1` when `v1 !== v2`, otherwise returns `els`. Promise and function thunk aware.
+
 ## [2.0.7] - 2026-06-25
 
+### Changed
+- `valueOr`, `emptyOr`, `hasOr`, `equalsOr`: added overload signatures for precise async/sync return types.
+
 ## [2.0.6] - 2026-06-25
+
+### Changed
+- `jsonStringify`: added overload signatures so `Record`/array inputs resolve to `string` (non-nullable).
 
 ## [2.0.5] - 2026-06-24
 

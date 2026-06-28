@@ -234,6 +234,39 @@ const waited = (func, frameCount = 0) => {
         func();
     });
 };
+const notEqualsOr = (...args) => {
+    if (args.length === 2) {
+        return emptyOr(args[0], args[1]);
+    }
+    const [param1, param2, els] = args;
+    const resolveIfFunction = (val) => {
+        return typeof val === "function" ? val() : val;
+    };
+    const p1 = resolveIfFunction(param1);
+    const p2 = resolveIfFunction(param2);
+    const hasPromise = (p1 instanceof Promise) || (p2 instanceof Promise) || (els instanceof Promise);
+    if (hasPromise) {
+        return Promise.all([
+            Promise.resolve(p1),
+            Promise.resolve(p2)
+        ]).then(([v1, v2]) => {
+            if (lodash.isNil(v1) && lodash.isNil(v2)) {
+                return resolveIfFunction(els);
+            }
+            if (lodash.isEqual(v1, v2)) {
+                return resolveIfFunction(els);
+            }
+            return v1;
+        });
+    }
+    if (lodash.isNil(p1) && lodash.isNil(p2)) {
+        return resolveIfFunction(els);
+    }
+    if (lodash.isEqual(p1, p2)) {
+        return resolveIfFunction(els);
+    }
+    return p1;
+};
 const equalsOr = (...args) => {
     if (args.length === 2) {
         return valueOr(args[0], args[1]);
@@ -559,6 +592,7 @@ const _ = {
     valueOr,
     equalsOr,
     emptyOr,
+    notEqualsOr,
     hasOr,
     waited,
     parseJSON,
@@ -573,4 +607,4 @@ const _ = {
 };
 export default _;
 // 個別エクスポートはそのまま
-export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };
+export { isEmpty, toNumber, boolIf, isValidStr, valueOr, equalsOr, notEqualsOr, waited, parseJSON, jsonStringify, castArray, changes, strWrap, swallow, swallowMap, arrayDepth, isValidEmail, };

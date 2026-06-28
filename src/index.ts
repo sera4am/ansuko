@@ -290,6 +290,36 @@ type equalsOrProps = {
     <T, E>(param1: MaybeFunction<T>, param2: MaybeFunction<T>, els?: E | (() => E)): T | E | null
     <T, E>(value: MaybeFunction<MaybePromise<T | null | undefined>>, els?: E | (() => MaybePromise<E>)): MaybePromise<T | E | undefined | null>
 }
+
+const notEqualsOr: equalsOrProps = (...args: any[]): any => {
+    if (args.length === 2) {
+        return emptyOr(args[0], args[1])
+    }
+    const [param1, param2, els] = args
+
+    const resolveIfFunction = (val: any): any => {
+        return typeof val === "function" ? (val as () => any)(): val
+    }
+
+    const p1 = resolveIfFunction(param1)
+    const p2 = resolveIfFunction(param2)
+    const hasPromise = (p1 instanceof Promise) || (p2 instanceof Promise) || (els instanceof Promise)
+
+    if (hasPromise) {
+        return Promise.all([
+            Promise.resolve(p1),
+            Promise.resolve(p2)
+        ]).then(([v1, v2]) => {
+            if (lodash.isNil(v1) && lodash.isNil(v2)) { return resolveIfFunction(els) }
+            if (lodash.isEqual(v1, v2)) { return resolveIfFunction(els) }
+            return v1
+        })
+    }
+    if (lodash.isNil(p1) && lodash.isNil(p2)) { return resolveIfFunction(els) }
+    if (lodash.isEqual(p1, p2)) { return resolveIfFunction(els) }
+    return p1
+}
+
 const equalsOr: equalsOrProps = (...args: any[]): any => {
     if (args.length === 2) {
         return valueOr(args[0], args[1])
@@ -656,6 +686,7 @@ export interface AnsukoType extends Omit<LoDashStatic, AnsukoOverriddenKeys> {
     boolIf: typeof boolIf
     waited: typeof waited
     equalsOr: typeof equalsOr
+    notEqualsOr: typeof notEqualsOr
     parseJSON: typeof parseJSON
     jsonStringify: typeof jsonStringify
     changes: typeof changes
@@ -699,6 +730,7 @@ const _ = {
     valueOr,
     equalsOr,
     emptyOr,
+    notEqualsOr,
     hasOr,
     waited,
     parseJSON,
@@ -721,6 +753,7 @@ export {
     isValidStr,
     valueOr,
     equalsOr,
+    notEqualsOr,
     waited,
     parseJSON,
     jsonStringify,

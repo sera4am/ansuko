@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/sera/proj/ansuko diff)",
+      "Bash(git -C /Users/sera/proj/ansuko add src/index.ts CHANGELOG.md)",
+      "Bash(git -C /Users/sera/proj/ansuko commit -m ' *)"
+    ]
+  }
+}

@@ -104,7 +104,7 @@ declare const boolIf: (value: unknown, defaultValue?: boolean) => boolean;
  * @example waited(startAnimation, 2)
  * @category Core Functions
  */
-declare const waited: (func: () => void, frameCount?: number) => void;
+declare const waited: (func: () => void | Promise<void>, frameCount?: number) => void;
 /**
  * Compares two values; if equal returns the value, otherwise returns the default.
  * null and undefined are considered equal. Promise-aware.

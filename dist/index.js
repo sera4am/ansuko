@@ -231,7 +231,10 @@ const waited = (func, frameCount = 0) => {
         if (frameCount > 0) {
             return waited(func, frameCount - 1);
         }
-        func();
+        const result = func();
+        if (result instanceof Promise) {
+            result.catch(console.error);
+        }
     });
 };
 const notEqualsOr = (...args) => {

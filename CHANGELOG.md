@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.10] - 2026-07-13
+
 ### Changed
 - `waited`: accepts `() => Promise<void>` in addition to `() => void`; returned Promise errors are forwarded to `console.error`
 - `index.ts`: removed unused named import `isNil` from lodash
@@ -94,7 +96,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.8...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.10...HEAD
+[2.0.10]: https://github.com/sera4am/ansuko/releases/tag/v2.0.10
 [2.0.8]: https://github.com/sera4am/ansuko/releases/tag/v2.0.8
 [2.0.7]: https://github.com/sera4am/ansuko/releases/tag/v2.0.7
 [2.0.6]: https://github.com/sera4am/ansuko/releases/tag/v2.0.6

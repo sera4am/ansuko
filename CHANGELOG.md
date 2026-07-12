@@ -9,6 +9,10 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Changed
+- `waited`: accepts `() => Promise<void>` in addition to `() => void`; returned Promise errors are forwarded to `console.error`
+- `index.ts`: removed unused named import `isNil` from lodash
+
 ## [2.0.8] - 2026-06-28
 
 ### Added

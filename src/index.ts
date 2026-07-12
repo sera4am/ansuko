@@ -1,4 +1,4 @@
-import lodash, { isNil, type LoDashStatic } from "lodash"
+import lodash, { type LoDashStatic } from "lodash"
 import JSON5 from "json5"
 import { toHalfWidth } from "./util.js"
 
@@ -264,10 +264,11 @@ const boolIf = (value: unknown, defaultValue: boolean = false): boolean => {
  * @example waited(startAnimation, 2)
  * @category Core Functions
  */
-const waited = (func: () => void, frameCount: number = 0): void => {
+const waited = (func: () => void | Promise<void>, frameCount: number = 0): void => {
     requestAnimationFrame(() => {
         if (frameCount > 0) { return waited(func, frameCount - 1) }
-        func()
+        const result = func()
+        if (result instanceof Promise) { result.catch(console.error) }
     })
 }
 

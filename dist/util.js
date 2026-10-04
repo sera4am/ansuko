@@ -49,8 +49,8 @@ export const haifun = (text, replacement = "‐", expandInterpretation = false) 
         "\uFF0D", // − (FULL WIDTH HYPHEN-MINUS)
         "\uFF70", // ｰ (HALF WIDTH PROLONGED SOUND MARK)
         "\uFFDA", // ￚ (HALFWIDTH HANGUL LETTER EU)
-        "\u10110", // 𐄐 (AEGEAN NUMBER TEN)
-        "\u10191", // 𐆑 (ROMAN UNCIA SIGN)
+        "\u{10110}", // 𐄐 (AEGEAN NUMBER TEN)
+        "\u{10191}", // 𐆑 (ROMAN UNCIA SIGN)
         "\u1680", // (OGHAM SPACE MARK)
     ];
     const ex = [

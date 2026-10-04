@@ -40,4 +40,10 @@ describe('JA Plugin', () => {
     expect(ansuko.haifun('東京ー大阪—名古屋')).toBe('東京‐大阪‐名古屋')
     expect(ansuko.haifun('file_name〜test','‐',true)).toBe('file‐name‐test')
   })
+
+  it('haifun keeps ASCII digits (astral code points must not split into BMP + digit)', () => {
+    expect(ansuko.haifun('8‐1 10−0', '-')).toBe('8-1 10-0')
+    expect(ansuko.toHalfWidth('西新宿二丁目８－１', '-')).toBe('西新宿二丁目8-1')
+    expect(ansuko.haifun('\u{10110}\u{10191}', '-')).toBe('--')
+  })
 })

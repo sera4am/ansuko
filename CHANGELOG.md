@@ -9,6 +9,9 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Fixed
+- `haifun` / `toHalfWidth` / `toFullWidth` (ja plugin): ASCII digits `0` and `1` were replaced with the hyphen character. `"\u10110"` / `"\u10191"` were parsed as `\u1011` + `0` / `\u1019` + `1`; now written as `\u{10110}` / `\u{10191}`
+
 ## [2.0.10] - 2026-07-13
 
 ### Changed

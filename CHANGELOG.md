@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.11] - 2026-10-05
+
 ### Fixed
 - `haifun` / `toHalfWidth` / `toFullWidth` (ja plugin): ASCII digits `0` and `1` were replaced with the hyphen character. `"\u10110"` / `"\u10191"` were parsed as `\u1011` + `0` / `\u1019` + `1`; now written as `\u{10110}` / `\u{10191}`
 
@@ -99,7 +101,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.10...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.11...HEAD
+[2.0.11]: https://github.com/sera4am/ansuko/releases/tag/v2.0.11
 [2.0.10]: https://github.com/sera4am/ansuko/releases/tag/v2.0.10
 [2.0.8]: https://github.com/sera4am/ansuko/releases/tag/v2.0.8
 [2.0.7]: https://github.com/sera4am/ansuko/releases/tag/v2.0.7

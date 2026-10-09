@@ -17,6 +17,14 @@ describe('JA Plugin', () => {
     expect(ansuko.kanaToHalf(null)).toBeNull()
   })
 
+  it('parentheses are converted (regression: used to become "undefined")', () => {
+    expect(ansuko.kanaToFull('ｱ(ｲ)')).toBe('ア（イ）')
+    expect(ansuko.kanaToHalf('ア（イ）')).toBe('ｱ(ｲ)')
+    expect(ansuko.toFullWidth('a(b)')).toBe('ａ（ｂ）')
+    // 正規表現を使い回しても結果が変わらないこと (g フラグの lastIndex)
+    expect(ansuko.kanaToFull('ｱ(ｲ)')).toBe('ア（イ）')
+  })
+
   it('kanaToHira / hiraToKana', () => {
     expect(ansuko.kanaToHira('アイウ')).toBe('あいう')
     expect(ansuko.hiraToKana('あいう')).toBe('アイウ')

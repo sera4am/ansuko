@@ -45,9 +45,18 @@ if (!_.__plugins.has(PLUGIN_NAME)) {
         'ﾜ': 'ワ', 'ｦ': 'ヲ', 'ﾝ': 'ン',
         'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ',
         'ｯ': 'ッ', 'ｬ': 'ャ', 'ｭ': 'ュ', 'ｮ': 'ョ',
-        '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・', '\\)': '）', '\\(': '（'
+        '｡': '。', '､': '、', 'ｰ': 'ー', '｢': '「', '｣': '」', '･': '・', ')': '）', '(': '（'
 
     }
+
+    // 正規表現と逆引きマップは呼び出しごとに作らず1度だけ作る
+    // (キーに含まれる "(" などはエスケープが必要。replace は lastIndex をリセットするので g フラグの使い回しは安全)
+    const kanaToFullRegex = new RegExp(`(${Object.keys(kanaMap).map(_.escapeRegExp).join('|')})`, 'g')
+    const reverseKanaMap = _.invert(kanaMap)
+    const kanaToHalfRegex = new RegExp(`(${Object.keys(reverseKanaMap)
+        .sort((v1: string, v2: string) => _.size(v2) - _.size(v1))
+        .map(_.escapeRegExp)
+        .join('|')})`, 'g')
 
     /**
      * Converts half-width katakana to full-width.
@@ -58,8 +67,7 @@ if (!_.__plugins.has(PLUGIN_NAME)) {
      */
     const kanaToFull = (str: unknown): string | null => {
         if (!_.isValidStr(str)) { return null }
-        const regex = new RegExp(`(${Object.keys(kanaMap).join('|')})`, 'g')
-        return str.replace(regex, m => kanaMap[m])
+        return str.replace(kanaToFullRegex, m => kanaMap[m])
     }
 
     /**
@@ -71,12 +79,7 @@ if (!_.__plugins.has(PLUGIN_NAME)) {
      */
     const kanaToHalf = (str: unknown): string | null => {
         if (!_.isValidStr(str)) { return null }
-
-        const reverseMap = _.invert(kanaMap)
-        const sortedKeys = Object.keys(reverseMap)
-            .sort((v1: string, v2: string) => _.size(v2) - _.size(v1))
-        const regex = new RegExp(`(${sortedKeys.join('|')})`, 'g')
-        return str.replace(regex, m => reverseMap[m])
+        return str.replace(kanaToHalfRegex, m => reverseKanaMap[m])
     }
 
     /**

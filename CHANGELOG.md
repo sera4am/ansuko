@@ -9,6 +9,12 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Fixed
+- `kanaToFull` / `kanaToHalf` / `toFullWidth` (ja plugin): half-width parentheses `(` `)` were converted to the string `"undefined"` (and `kanaToHalf` produced `\(` / `\)`). Map keys are now plain characters and are regex-escaped when building the pattern.
+
+### Changed
+- ja plugin: the kana conversion regexes and reverse map are built once instead of on every call.
+
 ## [2.0.11] - 2026-10-05
 
 ### Fixed

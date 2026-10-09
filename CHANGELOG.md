@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.12] - 2026-10-09
+
 ### Fixed
 - `kanaToFull` / `kanaToHalf` / `toFullWidth` (ja plugin): half-width parentheses `(` `)` were converted to the string `"undefined"` (and `kanaToHalf` produced `\(` / `\)`). Map keys are now plain characters and are regex-escaped when building the pattern.
 
@@ -107,7 +109,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.11...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.12...HEAD
+[2.0.12]: https://github.com/sera4am/ansuko/releases/tag/v2.0.12
 [2.0.11]: https://github.com/sera4am/ansuko/releases/tag/v2.0.11
 [2.0.10]: https://github.com/sera4am/ansuko/releases/tag/v2.0.10
 [2.0.8]: https://github.com/sera4am/ansuko/releases/tag/v2.0.8

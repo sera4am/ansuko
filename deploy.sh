@@ -24,6 +24,6 @@ case "${VERSION}" in
     npm version patch ;;
 esac
 
-git push --tags
+git push --follow-tags
 
 npm publish

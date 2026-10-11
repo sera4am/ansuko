@@ -9,6 +9,8 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+## [2.0.13] - 2026-10-11
+
 ### Added
 - `LICENSE` file (MIT). It was listed in `files` of package.json but missing, so the published package carried no license text.
 
@@ -112,7 +114,8 @@ _.kanaToFull("ｶﾞ")
 If you previously chained `_.extend(a).extend(b)`, replace it with two
 side-effect imports.
 
-[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.12...HEAD
+[Unreleased]: https://github.com/sera4am/ansuko/compare/v2.0.13...HEAD
+[2.0.13]: https://github.com/sera4am/ansuko/releases/tag/v2.0.13
 [2.0.12]: https://github.com/sera4am/ansuko/releases/tag/v2.0.12
 [2.0.11]: https://github.com/sera4am/ansuko/releases/tag/v2.0.11
 [2.0.10]: https://github.com/sera4am/ansuko/releases/tag/v2.0.10

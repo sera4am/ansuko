@@ -387,7 +387,7 @@ Developed by Sera with assistance from Claude (Anthropic) for documentation, cod
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
 
 ## Author
 

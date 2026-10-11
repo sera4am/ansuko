@@ -9,6 +9,9 @@ For changes prior to v2.0.0, see the [git history](https://github.com/sera4am/an
 
 ## [Unreleased]
 
+### Added
+- `LICENSE` file (MIT). It was listed in `files` of package.json but missing, so the published package carried no license text.
+
 ## [2.0.12] - 2026-10-09
 
 ### Fixed
